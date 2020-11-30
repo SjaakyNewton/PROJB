@@ -1,15 +1,9 @@
 import tkinter
-# import requests
-# import json
-#
-# url = 'https://raw.githubusercontent.com/tijmenjoppe/AnalyticalSkills-student/master/project/data/steam.json'
-#
-# response = requests.get(url)
-#
-# content = json.loads(response.text)
-#
-# for rij in content:
-#     print(rij['name'])
+import requests
+import json
+
+url = 'https://raw.githubusercontent.com/tijmenjoppe/AnalyticalSkills-student/master/project/data/steam.json'
+
 """"
 Steam colour codes:
 #171a21 donker donker blauw
@@ -17,7 +11,6 @@ Steam colour codes:
 #1b2838 donker blauw
 #2a475e licht blauw
 #c7d5e0 grijswit
-
 Label settings: bg = '#2a9df4',fg='white'
                 bg = '#187bcd',fg='white'
                 bg = '#0197CF',fg='white' (Favoriet)
@@ -26,6 +19,7 @@ Label settings: bg = '#2a9df4',fg='white'
 def startFrame():
     onlineScherm.forget()
     gamesScherm.forget()
+    gameLijstScherm.forget()
     startScherm.pack()
     root.geometry('400x400')
     #optie scherm met wat je wilt zien
@@ -42,8 +36,98 @@ def playedGamesFrame():
     root.geometry('400x400')
     #games die gespeeld worden en mogelijk nu gespeeld worden.
 
+def gameLijstFrame():
+    startScherm.forget()
+    gameLijstScherm.pack()
+    #gamesDieErZijn['text'] = sortedOnName()
+    sortedOnName()
+    root.geometry('400x400')
+
+def jsonFunctie():
+    response = requests.get(url)
+    content = json.loads(response.text)
+    game1 = (content[220]["name"])
+    return game1
+
+def sortedOnName():
+    gamesTonen.delete(0,'end')
+    response = requests.get(url)
+    content = json.loads(response.text)
+    #print(sorted(content, key = lambda i: i['name']))
+    #print(content.sort(key=lambda item: item.get('name')))
+    game = sorted(content, key=lambda item: item.get('name'))
+    string = ''
+    for item in game:
+        gamesTonen.insert('end',item['name'])
+    return string
+
+def sortedOnNameRevers():
+    gamesTonen.delete(0,'end')
+    response = requests.get(url)
+    content = json.loads(response.text)
+    #print(sorted(content, key = lambda i: i['name']))
+    #print(content.sort(key=lambda item: item.get('name')))
+    game = sorted(content, key=lambda item: item.get('name'),reverse=True)
+    string = ''
+    for item in game:
+        gamesTonen.insert('end',item['name'])
+    return string
+
+def sortedOnPrice():
+    gamesTonen.delete(0, 'end')
+    response = requests.get(url)
+    content = json.loads(response.text)
+    #print(sorted(content, key = lambda i: i['name']))
+    #print(content.sort(key=lambda item: item.get('name')))
+    game = sorted(content, key=lambda item: item.get('price'))
+    string = ''
+    for item in game:
+        gamesTonen.insert('end','€'+str(item['price'])+'; '+ item['name'])
+    return string
+
+def sortedOnPriceRevers():
+    gamesTonen.delete(0, 'end')
+    response = requests.get(url)
+    content = json.loads(response.text)
+    #print(sorted(content, key = lambda i: i['name']))
+    #print(content.sort(key=lambda item: item.get('name')))
+    game = sorted(content, key=lambda item: item.get('price'),reverse=True)
+    string = ''
+    for item in game:
+        gamesTonen.insert('end','€'+str(item['price'])+'; '+ item['name'])
+    return string
+
+def sortedOnReviewPositive():
+    gamesTonen.delete(0, 'end')
+    response = requests.get(url)
+    content = json.loads(response.text)
+    #print(sorted(content, key = lambda i: i['name']))
+    #print(content.sort(key=lambda item: item.get('name')))
+    game = sorted(content, key=lambda item: item.get('positive_ratings'),reverse=True)
+    string = ''
+    for item in game:
+        gamesTonen.insert('end',str(item['positive_ratings'])+'; '+ item['name'])
+    return string
+
+def sortedOnReviewNegative():
+    gamesTonen.delete(0, 'end')
+    response = requests.get(url)
+    content = json.loads(response.text)
+    #print(sorted(content, key = lambda i: i['name']))
+    #print(content.sort(key=lambda item: item.get('name')))
+    game = sorted(content, key=lambda item: item.get('negative_ratings'),reverse=True)
+    string = ''
+    for item in game:
+        gamesTonen.insert('end',str(item['negative_ratings'])+'; '+ item['name'])
+    return string
+
+
+# def sortedGames():
+#     #Een sorteer op de spelnaam
+
+
 root = tkinter.Tk()
-root.configure(background='#1b2838')
+root.configure(background='#1b2838',)
 root.title('Steam AI')
 #root.maxsize(600,400)
 
@@ -51,34 +135,67 @@ root.title('Steam AI')
 startScherm = tkinter.Frame(master=root,bg = '#1b2838')
 startScherm.pack()
 startSchermWelkomLabel = tkinter.Label(master=startScherm,text='Welkom!',bg = '#1b2838',fg='white',font=(30))
-startSchermWelkomLabel.pack(pady=10)
-startSchermOnline = tkinter.Button(master=startScherm,text='Online vrienden',command=onlineVriendenFrame,bg = '#2a475e',fg='#c7d5e0',
-activebackground='green')
-startSchermOnline.pack()
+startSchermWelkomLabel.grid(pady=10)
+startSchermOnline = tkinter.Button(master=startScherm,text='Online vrienden',command=onlineVriendenFrame,bg = '#2a475e',fg='#c7d5e0',width=20)
+startSchermOnline.grid(row=1, column=0, pady=4,sticky='nesw')
 startSchermGames = tkinter.Button(master=startScherm,text='Games',command=playedGamesFrame,bg = '#2a475e',fg='#c7d5e0')
-startSchermGames.pack()
+startSchermGames.grid(row=2, column=0, pady=4,sticky='nesw')
+startSchermGameLijst = tkinter.Button(master=startScherm,text='Games lijst',command=gameLijstFrame,bg = '#2a475e',fg='#c7d5e0')
+startSchermGameLijst.grid(row=3, column=0, pady=4,sticky='nesw')
+
 
 onlineScherm = tkinter.Frame(master=root,bg = '#1b2838')
 onlineScherm.pack()
-onlineVrienden = tkinter.Label(master=onlineScherm,text='Momenteel online:',bg = '#0197CF',fg='white')
-onlineVrienden.pack(pady=3)
+onlineVrienden = tkinter.Label(master=onlineScherm,text='Momenteel online:',bg = '#1b2838',fg='#0197CF',font=(20))
+onlineVrienden.grid(pady=3,sticky='nesw')
 mogelijkOnline = tkinter.Label(master=onlineScherm,text='Deze vrienden zijn nu vaak online:',bg = '#0197CF',fg='white')
-mogelijkOnline.pack(pady=3)
+#mogelijkOnline.grid(pady=3,sticky='nesw')
 terugButton = tkinter.Button(master=onlineScherm, text ='Terug',command=startFrame,bg = '#2a475e',fg='#c7d5e0')
-terugButton.pack()
+terugButton.grid(sticky='nesw')
+
 
 gamesScherm = tkinter.Frame(master=root,bg = '#1b2838')
 gamesScherm.pack()
 gamesNuGespeeld = tkinter.Label(master=gamesScherm,text='Games die nu gespeeld worden:',bg = '#0197CF',fg='white')
-gamesNuGespeeld.pack(pady=3)
+gamesNuGespeeld.grid(pady=3,sticky='nesw')
+huidigeGame = tkinter.Label(master=gamesScherm, text=jsonFunctie(),bg = '#0197CF',fg='white')
+huidigeGame.grid(pady=3,sticky='nesw')
+
 gamesMogelijkGespeeld = tkinter.Label(master=gamesScherm,text='Games die nu mogelijk gespeeld worden:',bg = '#0197CF',fg='white')
-gamesMogelijkGespeeld.pack(pady=3)
+gamesMogelijkGespeeld.grid(pady=3,sticky='nesw')
 terugButton = tkinter.Button(master=gamesScherm, text ='Terug',command=startFrame,bg = '#2a475e',fg='#c7d5e0')
-terugButton.pack()
+terugButton.grid(sticky='nesw')
+
+
+gameLijstScherm = tkinter.Frame(master=root,bg = '#1b2838')
+gameLijstScherm.pack()
+scrolbar = tkinter.Scrollbar(master=gameLijstScherm)
+scrolbar.grid(row=1,column=2,sticky='nesw')
+gamesDieErZijn = tkinter.Label(master=gameLijstScherm,bg = '#1b2838',fg='white',text='Alle games: ',font=(20))
+gamesDieErZijn.grid(row=0, pady=4,columnspan=2)
+gamesTonen = tkinter.Listbox(master=gameLijstScherm,bg = '#0197CF',fg='white',yscrollcommand=scrolbar.set,width=50)
+gamesTonen.grid(row=1,columnspan=2,sticky='nesw')
+scrolbar.config(command=gamesTonen.yview)
+sorteerOpNaamA = tkinter.Button(master=gameLijstScherm,text='Sorteer op naam A-Z',command=sortedOnName,bg = '#2a475e',fg='#c7d5e0')
+sorteerOpNaamA.grid(row=2,sticky='nesw', pady=4)
+sorteerOpNaamZ = tkinter.Button(master=gameLijstScherm,text='Sorteer op naam Z-A',command=sortedOnNameRevers,bg = '#2a475e',fg='#c7d5e0')
+sorteerOpNaamZ.grid(row=2,column=1,sticky='nesw', pady=4)
+sorteerOpPrijsLaag = tkinter.Button(master=gameLijstScherm,text='Sorteer op Prijs(Laag)',command=sortedOnPrice,bg = '#2a475e',fg='#c7d5e0')
+sorteerOpPrijsLaag.grid(row=3,sticky='nesw', pady=4)
+sorteerOpPrijsHoog = tkinter.Button(master=gameLijstScherm,text='Sorteer op Prijs(Hoog)',command=sortedOnPriceRevers,bg = '#2a475e',fg='#c7d5e0')
+sorteerOpPrijsHoog.grid(row=3,column=1,sticky='nesw', pady=4)
+sorteerOpPositief = tkinter.Button(master=gameLijstScherm,text='Sorteer op Positief',command=sortedOnReviewPositive,bg = '#2a475e',fg='#c7d5e0')
+sorteerOpPositief.grid(row=4,sticky='nesw', pady=4)
+sorteerOpnegatief = tkinter.Button(master=gameLijstScherm,text='Sorteer op Negatief',command=sortedOnReviewNegative,bg = '#2a475e',fg='#c7d5e0')
+sorteerOpnegatief.grid(row=4,column=1,sticky='nesw', pady=4)
+terugButton = tkinter.Button(master=gameLijstScherm, text ='Terug',command=startFrame,bg = '#2a475e',fg='#c7d5e0')
+terugButton.grid(row=6,sticky='nesw', pady=4,columnspan=2)
+
 
 startScherm.forget()
 onlineScherm.forget()
 gamesScherm.forget()
+gameLijstScherm.forget()
 
 startFrame()
 
