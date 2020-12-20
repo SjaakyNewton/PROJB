@@ -44,17 +44,17 @@ def gameLijstFrame():
     root.geometry('400x400')
 
 def jsonFunctie():
+    ''''Functie die het json bestand uitleest. Dit schilt in elke andere functie de moeite om het ergens vandaan te halen.
+    Met een regel kan iets de content gebruikt.'''
     response = requests.get(url)
     content = json.loads(response.text)
-    game1 = (content[220]["name"])
-    return game1
+    return content
+
 
 def sortedOnName():
+    ''''Functie die een lijst van games van het json bestand op naam sorteert'''
     gamesTonen.delete(0,'end')
-    response = requests.get(url)
-    content = json.loads(response.text)
-    #print(sorted(content, key = lambda i: i['name']))
-    #print(content.sort(key=lambda item: item.get('name')))
+    content = jsonFunctie()
     game = sorted(content, key=lambda item: item.get('name'))
     string = ''
     for item in game:
@@ -62,11 +62,9 @@ def sortedOnName():
     return string
 
 def sortedOnNameRevers():
+    ''''Functie die een lijst van games van het json bestand op naam sorteert maar dan reversed'''
     gamesTonen.delete(0,'end')
-    response = requests.get(url)
-    content = json.loads(response.text)
-    #print(sorted(content, key = lambda i: i['name']))
-    #print(content.sort(key=lambda item: item.get('name')))
+    content = jsonFunctie()
     game = sorted(content, key=lambda item: item.get('name'),reverse=True)
     string = ''
     for item in game:
@@ -74,11 +72,9 @@ def sortedOnNameRevers():
     return string
 
 def sortedOnPrice():
+    ''''Functie die een lijst van games van het json bestand op prijs sorteert'''
     gamesTonen.delete(0, 'end')
-    response = requests.get(url)
-    content = json.loads(response.text)
-    #print(sorted(content, key = lambda i: i['name']))
-    #print(content.sort(key=lambda item: item.get('name')))
+    content = jsonFunctie()
     game = sorted(content, key=lambda item: item.get('price'))
     string = ''
     for item in game:
@@ -86,11 +82,9 @@ def sortedOnPrice():
     return string
 
 def sortedOnPriceRevers():
+    ''''Functie die een lijst van games van het json bestand op prijs sorteert maar dan reversed '''
     gamesTonen.delete(0, 'end')
-    response = requests.get(url)
-    content = json.loads(response.text)
-    #print(sorted(content, key = lambda i: i['name']))
-    #print(content.sort(key=lambda item: item.get('name')))
+    content = jsonFunctie()
     game = sorted(content, key=lambda item: item.get('price'),reverse=True)
     string = ''
     for item in game:
@@ -98,11 +92,9 @@ def sortedOnPriceRevers():
     return string
 
 def sortedOnReviewPositive():
+    ''''Functie die een lijst van games van het json bestand op reviews sorteert die positief zijn'''
     gamesTonen.delete(0, 'end')
-    response = requests.get(url)
-    content = json.loads(response.text)
-    #print(sorted(content, key = lambda i: i['name']))
-    #print(content.sort(key=lambda item: item.get('name')))
+    content = jsonFunctie()
     game = sorted(content, key=lambda item: item.get('positive_ratings'),reverse=True)
     string = ''
     for item in game:
@@ -110,11 +102,9 @@ def sortedOnReviewPositive():
     return string
 
 def sortedOnReviewNegative():
+    ''''Functie die een lijst van games van het json bestand op reviews sorteert die negatief zijn'''
     gamesTonen.delete(0, 'end')
-    response = requests.get(url)
-    content = json.loads(response.text)
-    #print(sorted(content, key = lambda i: i['name']))
-    #print(content.sort(key=lambda item: item.get('name')))
+    content = jsonFunctie()
     game = sorted(content, key=lambda item: item.get('negative_ratings'),reverse=True)
     string = ''
     for item in game:
@@ -158,8 +148,9 @@ gamesScherm = tkinter.Frame(master=root,bg = '#1b2838')
 gamesScherm.pack()
 gamesNuGespeeld = tkinter.Label(master=gamesScherm,text='Games die nu gespeeld worden:',bg = '#0197CF',fg='white')
 gamesNuGespeeld.grid(pady=3,sticky='nesw')
-huidigeGame = tkinter.Label(master=gamesScherm, text=jsonFunctie(),bg = '#0197CF',fg='white')
+huidigeGame = tkinter.Label(master=gamesScherm, text='Dit is tijdelijk weg gehaald door Isaak',bg = '#0197CF',fg='white')
 huidigeGame.grid(pady=3,sticky='nesw')
+#Dit moet nog gekoppeld worden met de API daarom heb ik iets hier wegghaald. Ook omdat ik de jsonFunctie heb aangepast.
 
 gamesMogelijkGespeeld = tkinter.Label(master=gamesScherm,text='Games die nu mogelijk gespeeld worden:',bg = '#0197CF',fg='white')
 gamesMogelijkGespeeld.grid(pady=3,sticky='nesw')
