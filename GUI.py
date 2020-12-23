@@ -42,6 +42,7 @@ def gameLijstFrame():
     #gamesDieErZijn['text'] = sortedOnName()
     sortedOnName()
     root.geometry('400x400')
+    #Games die in steam staan. Worden uit een json bestand gehaald
 
 def jsonFunctie():
     ''''Functie die het json bestand uitleest. Dit schilt in elke andere functie de moeite om het ergens vandaan te halen.
@@ -107,7 +108,8 @@ def sortedOnReviewNegative():
 
 
 def sortedGamesZoekendOpNaam():
-    ''''Functie die een lijst van games van het json bestand opzoek waar naam in is gezet'''
+    ''''Functie die een lijst van games van het json bestand opzoek waar naam in is gezet. Indien je naam er al voor een deel inzit wordt de game mee genomen.
+    Indien de lijst leeg is meld die dat (Dus niks gevonden). Er wordt gezocht met lower cases. Hierdoor kun je gewoon alles doorzoeken en gaat die niet pietje precies doen.'''
     gamesTonen.delete(0,'end')
     content = jsonFunctie()
     game = sorted(content, key=lambda item: item.get('name'))
@@ -122,6 +124,8 @@ def sortedGamesZoekendOpNaam():
     return
 
 def binaireZoekFunctie(lst,target):
+  '''Functie die voor je binair kan zoeken. De functie is nog nergens mee gekoppeld omdat ik nog niet weet waar die aan gekoppeld moet worden. 
+  Maar hij staat er in ieder geval in. Moet waarschijnlijk nog een beetje bijgewerkt worden zodat je daarwerkelijk je index krijgt inplaats van een boolean.'''
     half = len(lst) // 2
     if len(lst) == 0 or len(lst)== 1 and lst[half] != target:
         return False
@@ -132,12 +136,13 @@ def binaireZoekFunctie(lst,target):
     else:
         return True
 
+'''Zegt hoe tkinter wordt gebruikt'''
 root = tkinter.Tk()
 root.configure(background='#1b2838',)
 root.title('Steam AI')
 #root.maxsize(600,400)
 
-
+'''Het begin scherm als je de GUI opent.'''
 startScherm = tkinter.Frame(master=root,bg = '#1b2838')
 startScherm.pack()
 startSchermWelkomLabel = tkinter.Label(master=startScherm,text='Welkom!',bg = '#1b2838',fg='white',font=(30))
@@ -149,7 +154,7 @@ startSchermGames.grid(row=2, column=0, pady=4,sticky='nesw')
 startSchermGameLijst = tkinter.Button(master=startScherm,text='Games lijst',command=gameLijstFrame,bg = '#2a475e',fg='#c7d5e0')
 startSchermGameLijst.grid(row=3, column=0, pady=4,sticky='nesw')
 
-
+'''Hier staan alle instellingen voor het scherm waar je kunt zien wie online is. Moet nog gekoppeld worden aan Steam API.'''
 onlineScherm = tkinter.Frame(master=root,bg = '#1b2838')
 onlineScherm.pack()
 onlineVrienden = tkinter.Label(master=onlineScherm,text='Momenteel online:',bg = '#1b2838',fg='#0197CF',font=(20))
@@ -159,7 +164,7 @@ mogelijkOnline = tkinter.Label(master=onlineScherm,text='Deze vrienden zijn nu v
 terugButton = tkinter.Button(master=onlineScherm, text ='Terug',command=startFrame,bg = '#2a475e',fg='#c7d5e0')
 terugButton.grid(sticky='nesw')
 
-
+'''Hier staan alle instellingen voor het scherm waar je kunt zien welke games gespeeld worden. Moet nog gekoppeld worden aan Steam API.'''
 gamesScherm = tkinter.Frame(master=root,bg = '#1b2838')
 gamesScherm.pack()
 gamesNuGespeeld = tkinter.Label(master=gamesScherm,text='Games die nu gespeeld worden:',bg = '#0197CF',fg='white')
@@ -173,7 +178,7 @@ gamesMogelijkGespeeld.grid(pady=3,sticky='nesw')
 terugButton = tkinter.Button(master=gamesScherm, text ='Terug',command=startFrame,bg = '#2a475e',fg='#c7d5e0')
 terugButton.grid(sticky='nesw')
 
-
+'''Hier staan alle instellingen voor het zoeken van games in een game lijst die door school is geleverd met een json bestand.'''
 gameLijstScherm = tkinter.Frame(master=root,bg = '#1b2838')
 gameLijstScherm.pack()
 scrolbar = tkinter.Scrollbar(master=gameLijstScherm)
