@@ -56,65 +56,81 @@ def sortedOnName():
     gamesTonen.delete(0,'end')
     content = jsonFunctie()
     game = sorted(content, key=lambda item: item.get('name'))
-    string = ''
     for item in game:
         gamesTonen.insert('end',item['name'])
-    return string
+    return
 
 def sortedOnNameRevers():
     ''''Functie die een lijst van games van het json bestand op naam sorteert maar dan reversed'''
     gamesTonen.delete(0,'end')
     content = jsonFunctie()
     game = sorted(content, key=lambda item: item.get('name'),reverse=True)
-    string = ''
     for item in game:
         gamesTonen.insert('end',item['name'])
-    return string
+    return
 
 def sortedOnPrice():
     ''''Functie die een lijst van games van het json bestand op prijs sorteert'''
     gamesTonen.delete(0, 'end')
     content = jsonFunctie()
     game = sorted(content, key=lambda item: item.get('price'))
-    string = ''
     for item in game:
         gamesTonen.insert('end','€'+str(item['price'])+'; '+ item['name'])
-    return string
+    return
 
 def sortedOnPriceRevers():
     ''''Functie die een lijst van games van het json bestand op prijs sorteert maar dan reversed '''
     gamesTonen.delete(0, 'end')
     content = jsonFunctie()
     game = sorted(content, key=lambda item: item.get('price'),reverse=True)
-    string = ''
     for item in game:
         gamesTonen.insert('end','€'+str(item['price'])+'; '+ item['name'])
-    return string
+    return
 
 def sortedOnReviewPositive():
     ''''Functie die een lijst van games van het json bestand op reviews sorteert die positief zijn'''
     gamesTonen.delete(0, 'end')
     content = jsonFunctie()
     game = sorted(content, key=lambda item: item.get('positive_ratings'),reverse=True)
-    string = ''
     for item in game:
         gamesTonen.insert('end',str(item['positive_ratings'])+'; '+ item['name'])
-    return string
+    return
 
 def sortedOnReviewNegative():
     ''''Functie die een lijst van games van het json bestand op reviews sorteert die negatief zijn'''
     gamesTonen.delete(0, 'end')
     content = jsonFunctie()
     game = sorted(content, key=lambda item: item.get('negative_ratings'),reverse=True)
-    string = ''
     for item in game:
         gamesTonen.insert('end',str(item['negative_ratings'])+'; '+ item['name'])
-    return string
+    return
 
 
-# def sortedGames():
-#     #Een sorteer op de spelnaam
+def sortedGamesZoekendOpNaam():
+    ''''Functie die een lijst van games van het json bestand opzoek waar naam in is gezet'''
+    gamesTonen.delete(0,'end')
+    content = jsonFunctie()
+    game = sorted(content, key=lambda item: item.get('name'))
+    zoekend = zoekendEntry.get()
+    for item in game:
+        item = item['name']
+        if zoekend.lower() in item.lower():
+            gamesTonen.insert('end',item)
+    if gamesTonen.size() == 0:
+        string = 'Kan de de game niet vinden...'
+        gamesTonen.insert('end',string)
+    return
 
+def binaireZoekFunctie(lst,target):
+    half = len(lst) // 2
+    if len(lst) == 0 or len(lst)== 1 and lst[half] != target:
+        return False
+    elif lst[half] < target:
+        return binaireZoekFunctie(lst[half:],target)
+    elif lst[half] > target:
+        return binaireZoekFunctie(lst[:half],target)
+    else:
+        return True
 
 root = tkinter.Tk()
 root.configure(background='#1b2838',)
@@ -175,10 +191,14 @@ sorteerOpPrijsLaag = tkinter.Button(master=gameLijstScherm,text='Sorteer op Prij
 sorteerOpPrijsLaag.grid(row=3,sticky='nesw', pady=4)
 sorteerOpPrijsHoog = tkinter.Button(master=gameLijstScherm,text='Sorteer op Prijs(Hoog)',command=sortedOnPriceRevers,bg = '#2a475e',fg='#c7d5e0')
 sorteerOpPrijsHoog.grid(row=3,column=1,sticky='nesw', pady=4)
-sorteerOpPositief = tkinter.Button(master=gameLijstScherm,text='Sorteer op Positief',command=sortedOnReviewPositive,bg = '#2a475e',fg='#c7d5e0')
+sorteerOpPositief = tkinter.Button(master=gameLijstScherm,text='Sorteer op Positief',bg = '#2a475e',fg='#c7d5e0',command=sortedOnReviewPositive)
 sorteerOpPositief.grid(row=4,sticky='nesw', pady=4)
 sorteerOpnegatief = tkinter.Button(master=gameLijstScherm,text='Sorteer op Negatief',command=sortedOnReviewNegative,bg = '#2a475e',fg='#c7d5e0')
 sorteerOpnegatief.grid(row=4,column=1,sticky='nesw', pady=4)
+zoekendEntry = tkinter.Entry(master=gameLijstScherm)
+zoekendEntry.grid(row=5,sticky='nesw', pady=4,columnspan=2)
+zoekendButton = tkinter.Button(master=gameLijstScherm,command=sortedGamesZoekendOpNaam)
+zoekendButton.grid(row=5,column=2,sticky='nesw')
 terugButton = tkinter.Button(master=gameLijstScherm, text ='Terug',command=startFrame,bg = '#2a475e',fg='#c7d5e0')
 terugButton.grid(row=6,sticky='nesw', pady=4,columnspan=2)
 
