@@ -1,11 +1,12 @@
-import tkinter
+from tkinter import *
+from PIL import ImageTk,Image
 import requests
 import json
 
 url = 'https://raw.githubusercontent.com/tijmenjoppe/AnalyticalSkills-student/master/project/data/steam.json'
 steamKey = 'B99D1FC3DA15306CAB4D188601446F66'
 
-# hieronder staan de Steam API variabelen voor de functie vriendenlijst(steam id is van Sandra's steam account dit is tijdelijk)
+# hieronder is de Steam API voor de functie vriendenlijst
 json_data_vriendenlijst = requests.get('http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key=B99D1FC3DA15306CAB4D188601446F66&steamid=76561198135983674&relationship=friend&format=json')
 json_formatted_vriendenlijst = json.loads(json_data_vriendenlijst.text)
 
@@ -55,15 +56,15 @@ def jsonFunctie():
     response = requests.get(url)
     content = json.loads(response.text)
     return content
-  
-  def vriendenlijst():
+
+def vriendenlijst():
     lijstmetid = []
     for i in json_formatted_vriendenlijst['friendslist']['friends']:
         lijstmetid.append(i['steamid'])
     return lijstmetid
-   #dit is een functie die de STEAMIDs in een lijst stopt om te gebruiken voor online vrienden API functie
-    
-    def vriendeninfo(lijstmetid):
+    #dit is een functie die de STEAMIDs in een lijst stopt om te gebruiken voor online vriendeninfo functie hieronder
+
+def vriendeninfo(lijstmetid):
     vriendenOnline = ''
     vriendenOffline = ''
     vriendenAway = ''
@@ -77,12 +78,16 @@ def jsonFunctie():
         for i in json_formatted_vriend['response']['players']:
             gebruikersnaam = i['personaname']
             if 1 == i['personastate']:
-                vriendenOnline += (f'Gebruikersnaam: {gebruikersnaam}  Status: Online\n')
+                vriendenOnline += (f'{gebruikersnaam}\n')
             elif 3 == i['personastate']:
-                vriendenAway += (f'Gebruikersnaam: {gebruikersnaam}  Status: Away\n')
+                vriendenAway += (f'{gebruikersnaam}\n')
             else:
-                vriendenOffline += (f'Gebruikersnaam: {gebruikersnaam}  Status: Offline\n')
+                vriendenOffline += (f'{gebruikersnaam}\n')
             lst.remove(lst[0])
+
+            vriendenonlinetonen['text'] = vriendenOnline
+            vriendenofflinetonen['text'] = vriendenOffline
+            vriendenawaytonen['text'] = vriendenAway
     # FUNCTIE VRIENDEN ONLINE - OFFLINE
 
 def sortedOnName():
@@ -157,8 +162,8 @@ def sortedGamesZoekendOpNaam():
     return
 
 def binaireZoekFunctie(lst,target):
-  '''Functie die voor je binair kan zoeken. De functie is nog nergens mee gekoppeld omdat ik nog niet weet waar die aan gekoppeld moet worden. 
-  Maar hij staat er in ieder geval in. Moet waarschijnlijk nog een beetje bijgewerkt worden zodat je daarwerkelijk je index krijgt inplaats van een boolean.'''
+    '''Functie die voor je binair kan zoeken. De functie is nog nergens mee gekoppeld omdat ik nog niet weet waar die aan gekoppeld moet worden.
+    Maar hij staat er in ieder geval in. Moet waarschijnlijk nog een beetje bijgewerkt worden zodat je daarwerkelijk je index krijgt inplaats van een boolean.'''
     half = len(lst) // 2
     if len(lst) == 0 or len(lst)== 1 and lst[half] != target:
         return False
@@ -169,75 +174,101 @@ def binaireZoekFunctie(lst,target):
     else:
         return True
 
+''' Dit staat vet random hier maar dit is voor tkinter onlinescherm frame  '''
+gehelevriendenlijst = vriendenlijst()
+
 '''Zegt hoe tkinter wordt gebruikt'''
-root = tkinter.Tk()
+root = Tk()
 root.configure(background='#1b2838',)
 root.title('Steam AI')
-#root.maxsize(600,400)
+root.iconbitmap('steamicon.ico')
+root.minsize(700, 500)
+root.maxsize(700, 500)
 
 '''Het begin scherm als je de GUI opent.'''
-startScherm = tkinter.Frame(master=root,bg = '#1b2838')
+startScherm = Frame(master=root,bg = '#1b2838')
 startScherm.pack()
-startSchermWelkomLabel = tkinter.Label(master=startScherm,text='Welkom!',bg = '#1b2838',fg='white',font=(30))
-startSchermWelkomLabel.grid(pady=10)
-startSchermOnline = tkinter.Button(master=startScherm,text='Online vrienden',command=onlineVriendenFrame,bg = '#2a475e',fg='#c7d5e0',width=20)
-startSchermOnline.grid(row=1, column=0, pady=4,sticky='nesw')
-startSchermGames = tkinter.Button(master=startScherm,text='Games',command=playedGamesFrame,bg = '#2a475e',fg='#c7d5e0')
-startSchermGames.grid(row=2, column=0, pady=4,sticky='nesw')
-startSchermGameLijst = tkinter.Button(master=startScherm,text='Games lijst',command=gameLijstFrame,bg = '#2a475e',fg='#c7d5e0')
-startSchermGameLijst.grid(row=3, column=0, pady=4,sticky='nesw')
+startSchermWelkomLabel = Label(master=startScherm,text='Welkom!',bg = '#1b2838',fg='white',font=('Arial', 50, 'bold italic'))
+startSchermWelkomLabel.grid(pady=30)
+startSchermOnline = Button(master=startScherm,text='Vriendenlijst',command=lambda:[onlineVriendenFrame(), vriendenlijst(),vriendeninfo(gehelevriendenlijst)],bg = '#2a475e',fg='#c7d5e0',width=20, height=2)
+startSchermOnline.grid(row=1, column=0, pady=20,sticky='nesw')
+startSchermGames = Button(master=startScherm,text='Games',command=playedGamesFrame,bg = '#2a475e',fg='#c7d5e0', width=20, height=2)
+startSchermGames.grid(row=2, column=0, pady=20,sticky='nesw')
+startSchermGameLijst = Button(master=startScherm,text='Games lijst',command=gameLijstFrame,bg = '#2a475e',fg='#c7d5e0', width=20, height=2)
+startSchermGameLijst.grid(row=3, column=0, pady=20,sticky='nesw')
 
-'''Hier staan alle instellingen voor het scherm waar je kunt zien wie online is. Moet nog gekoppeld worden aan Steam API.'''
-onlineScherm = tkinter.Frame(master=root,bg = '#1b2838')
+''' Logo Steam in beginscherm '''
+logo = ImageTk.PhotoImage(Image.open("steamlogo.png"))
+logolabel = Label(master=startScherm, image=logo)
+logolabel.grid(row=4, column=0, padx=40)
+
+'''Hier staan alle instellingen voor het scherm waar je kunt zien wie online is.'''
+onlineScherm = Frame(master=root,bg = '#1b2838')
 onlineScherm.pack()
-onlineVrienden = tkinter.Label(master=onlineScherm,text='Momenteel online:',bg = '#1b2838',fg='#0197CF',font=(20))
-onlineVrienden.grid(pady=3,sticky='nesw')
-mogelijkOnline = tkinter.Label(master=onlineScherm,text='Deze vrienden zijn nu vaak online:',bg = '#0197CF',fg='white')
+onlineVrienden = Label(master=onlineScherm,text='Momenteel online:    ',bg = '#1b2838',fg='#0197CF',font=(20))
+onlineVrienden.grid(row=0, column=0)
+vriendenonlinetonen = Label(master=onlineScherm, bg = '#1b2838', fg='white')
+vriendenonlinetonen.grid(row=1, column=0)
+
+''' Instellingen voor wie offline zijn '''
+offlineVrienden = Label(master=onlineScherm,text='Momenteel offline:',bg = '#1b2838',fg='#0197CF',font=(20))
+offlineVrienden.grid(row=0, column=2, pady=50)
+vriendenofflinetonen = Label(master=onlineScherm, bg = '#1b2838', fg='white')
+vriendenofflinetonen.grid(row=1, column=2)
+
+'''  Instellingen voor wie afwezig zijn '''
+awayVrienden = Label(master=onlineScherm,text='Momenteel afwezig:    ',bg = '#1b2838',fg='#0197CF',font=(20))
+awayVrienden.grid(row=0, column=1)
+vriendenawaytonen = Label(master=onlineScherm, bg = '#1b2838', fg='white')
+vriendenawaytonen.grid(row=1, column=1)
+
+mogelijkOnline = Label(master=onlineScherm,text='Deze vrienden zijn nu vaak online:',bg = '#0197CF',fg='white')
 #mogelijkOnline.grid(pady=3,sticky='nesw')
-terugButton = tkinter.Button(master=onlineScherm, text ='Terug',command=startFrame,bg = '#2a475e',fg='#c7d5e0')
-terugButton.grid(sticky='nesw')
+
+terugButton = Button(master=onlineScherm, text ='Terug',command=startFrame,bg = '#2a475e',fg='#c7d5e0')
+terugButton.grid(row=2, column=1)
 
 '''Hier staan alle instellingen voor het scherm waar je kunt zien welke games gespeeld worden. Moet nog gekoppeld worden aan Steam API.'''
-gamesScherm = tkinter.Frame(master=root,bg = '#1b2838')
+gamesScherm = Frame(master=root,bg = '#1b2838')
 gamesScherm.pack()
-gamesNuGespeeld = tkinter.Label(master=gamesScherm,text='Games die nu gespeeld worden:',bg = '#0197CF',fg='white')
+gamesNuGespeeld = Label(master=gamesScherm,text='Games die nu gespeeld worden:',bg = '#0197CF',fg='white')
 gamesNuGespeeld.grid(pady=3,sticky='nesw')
-huidigeGame = tkinter.Label(master=gamesScherm, text='Dit is tijdelijk weg gehaald door Isaak',bg = '#0197CF',fg='white')
+huidigeGame = Label(master=gamesScherm, text='Dit is tijdelijk weg gehaald door Isaak',bg = '#0197CF',fg='white')
 huidigeGame.grid(pady=3,sticky='nesw')
 #Dit moet nog gekoppeld worden met de API daarom heb ik iets hier wegghaald. Ook omdat ik de jsonFunctie heb aangepast.
 
-gamesMogelijkGespeeld = tkinter.Label(master=gamesScherm,text='Games die nu mogelijk gespeeld worden:',bg = '#0197CF',fg='white')
+gamesMogelijkGespeeld = Label(master=gamesScherm,text='Games die nu mogelijk gespeeld worden:',bg = '#0197CF',fg='white')
 gamesMogelijkGespeeld.grid(pady=3,sticky='nesw')
-terugButton = tkinter.Button(master=gamesScherm, text ='Terug',command=startFrame,bg = '#2a475e',fg='#c7d5e0')
+terugButton = Button(master=gamesScherm, text ='Terug',command=startFrame,bg = '#2a475e',fg='#c7d5e0')
 terugButton.grid(sticky='nesw')
 
 '''Hier staan alle instellingen voor het zoeken van games in een game lijst die door school is geleverd met een json bestand.'''
-gameLijstScherm = tkinter.Frame(master=root,bg = '#1b2838')
+gameLijstScherm = Frame(master=root,bg = '#1b2838')
 gameLijstScherm.pack()
-scrolbar = tkinter.Scrollbar(master=gameLijstScherm)
+scrolbar = Scrollbar(master=gameLijstScherm)
 scrolbar.grid(row=1,column=2,sticky='nesw')
-gamesDieErZijn = tkinter.Label(master=gameLijstScherm,bg = '#1b2838',fg='white',text='Alle games: ',font=(20))
+gamesDieErZijn = Label(master=gameLijstScherm,bg = '#1b2838',fg='white',text='Alle games: ',font=(20))
 gamesDieErZijn.grid(row=0, pady=4,columnspan=2)
-gamesTonen = tkinter.Listbox(master=gameLijstScherm,bg = '#0197CF',fg='white',yscrollcommand=scrolbar.set,width=50)
+gamesTonen = Listbox(master=gameLijstScherm,bg = '#0197CF',fg='white',yscrollcommand=scrolbar.set,width=50)
 gamesTonen.grid(row=1,columnspan=2,sticky='nesw')
 scrolbar.config(command=gamesTonen.yview)
-sorteerOpNaamA = tkinter.Button(master=gameLijstScherm,text='Sorteer op naam A-Z',command=sortedOnName,bg = '#2a475e',fg='#c7d5e0')
+sorteerOpNaamA = Button(master=gameLijstScherm,text='Sorteer op naam A-Z',command=sortedOnName,bg = '#2a475e',fg='#c7d5e0')
 sorteerOpNaamA.grid(row=2,sticky='nesw', pady=4)
-sorteerOpNaamZ = tkinter.Button(master=gameLijstScherm,text='Sorteer op naam Z-A',command=sortedOnNameRevers,bg = '#2a475e',fg='#c7d5e0')
+sorteerOpNaamZ = Button(master=gameLijstScherm,text='Sorteer op naam Z-A',command=sortedOnNameRevers,bg = '#2a475e',fg='#c7d5e0')
 sorteerOpNaamZ.grid(row=2,column=1,sticky='nesw', pady=4)
-sorteerOpPrijsLaag = tkinter.Button(master=gameLijstScherm,text='Sorteer op Prijs(Laag)',command=sortedOnPrice,bg = '#2a475e',fg='#c7d5e0')
+sorteerOpPrijsLaag = Button(master=gameLijstScherm,text='Sorteer op Prijs(Laag)',command=sortedOnPrice,bg = '#2a475e',fg='#c7d5e0')
 sorteerOpPrijsLaag.grid(row=3,sticky='nesw', pady=4)
-sorteerOpPrijsHoog = tkinter.Button(master=gameLijstScherm,text='Sorteer op Prijs(Hoog)',command=sortedOnPriceRevers,bg = '#2a475e',fg='#c7d5e0')
+sorteerOpPrijsHoog = Button(master=gameLijstScherm,text='Sorteer op Prijs(Hoog)',command=sortedOnPriceRevers,bg = '#2a475e',fg='#c7d5e0')
 sorteerOpPrijsHoog.grid(row=3,column=1,sticky='nesw', pady=4)
-sorteerOpPositief = tkinter.Button(master=gameLijstScherm,text='Sorteer op Positief',bg = '#2a475e',fg='#c7d5e0',command=sortedOnReviewPositive)
+sorteerOpPositief = Button(master=gameLijstScherm,text='Sorteer op Positief',bg = '#2a475e',fg='#c7d5e0',command=sortedOnReviewPositive)
 sorteerOpPositief.grid(row=4,sticky='nesw', pady=4)
-sorteerOpnegatief = tkinter.Button(master=gameLijstScherm,text='Sorteer op Negatief',command=sortedOnReviewNegative,bg = '#2a475e',fg='#c7d5e0')
+sorteerOpnegatief = Button(master=gameLijstScherm,text='Sorteer op Negatief',command=sortedOnReviewNegative,bg = '#2a475e',fg='#c7d5e0')
 sorteerOpnegatief.grid(row=4,column=1,sticky='nesw', pady=4)
-zoekendEntry = tkinter.Entry(master=gameLijstScherm)
+zoekendEntry = Entry(master=gameLijstScherm)
 zoekendEntry.grid(row=5,sticky='nesw', pady=4,columnspan=2)
-zoekendButton = tkinter.Button(master=gameLijstScherm,command=sortedGamesZoekendOpNaam)
+zoekendButton = Button(master=gameLijstScherm,command=sortedGamesZoekendOpNaam)
 zoekendButton.grid(row=5,column=2,sticky='nesw')
-terugButton = tkinter.Button(master=gameLijstScherm, text ='Terug',command=startFrame,bg = '#2a475e',fg='#c7d5e0')
+terugButton = Button(master=gameLijstScherm, text ='Terug',command=startFrame,bg = '#2a475e',fg='#c7d5e0')
 terugButton.grid(row=6,sticky='nesw', pady=4,columnspan=2)
 
 
