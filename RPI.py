@@ -1,6 +1,6 @@
 #connectie voor RPI is niet neergezet als je deze code draait.
 
-
+#standaard import
 import time
 import RPi.GPIO as GPIO
 
@@ -76,3 +76,29 @@ def vlag(clockPin, dataPin, delay):
 kleuren = [[0, 0, 255], [255, 255, 255], [255, 0, 0]]
 
 vlag(clock_pin, data_pin, 0.5)
+
+
+
+"""Dit is de code voor kwispelen"""
+def pulse(pin, delay1, delay2):
+    GPIO.output(pin, GPIO.HIGH)
+    time.sleep(delay1)
+    GPIO.output(pin, GPIO.LOW)
+    time.sleep(delay2)
+
+def servo_pulse(pin_nr, position):
+    input = position * 0.00002 + 0.0007
+    delay = 0.002
+    pulse(pin_nr,input,delay)
+
+
+def hondje(servo):
+    GPIO.setup(servo, GPIO.OUT)
+    for kwispel in range(0,3):
+        for i in range(0, 60, 1):
+            servo_pulse(servo, i)
+        for i in range(100, 0, -1):
+            servo_pulse(servo, i)
+
+servo = 25
+hondje(servo)
