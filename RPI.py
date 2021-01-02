@@ -3,13 +3,20 @@
 #standaard import
 import time
 import RPi.GPIO as GPIO
+import json
+import requests
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(0)
 
 
 
-'''Dit is de code voor de led lampjes. Er is nog niet bepaald wat we willen doen maar hier mee kan je al een heel eind komen
+'''Dit is de code voor de led lampjes. Hij reageert nog niet automatische elke minuut. Verder doet die het keurig en reageert die op veranderingen.
+
+!!!LET OP!!!
+Er moeten twee files bij zijn om het werken te maken!
+Away.txt
+Online.txt
 
 De volgende pinnen zijn geclaimed:'''
 clock_pin = 19
@@ -18,8 +25,8 @@ data_pin = 26
 GPIO.setup(clock_pin, GPIO.OUT)
 GPIO.setup(data_pin, GPIO.OUT)
 
-
-def apa102_send_bytes(clock_pin, data_pin, bytes):
+#Pulse naar Ledstrip
+def pulseLedStrip(clock_pin, data_pin, bytes):
     for byte in bytes:
         for bit in byte:
             if bit == 0:
@@ -35,10 +42,10 @@ def apa102_send_bytes(clock_pin, data_pin, bytes):
                 time.sleep(0.0001)
                 GPIO.output(clock_pin, GPIO.LOW)
 
-
-def apa102(clock_pin, data_pin, colors):
+#Ontcijfert de binaire code
+def LedStrip(clock_pin, data_pin, colors):
     deBytes = [128, 64, 32, 16, 8, 4, 2, 1]
-    apa102_send_bytes(clock_pin, data_pin,
+    pulseLedStrip(clock_pin, data_pin,
                       [[0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0],
                        [0, 0, 0, 0, 0, 0, 0, 0]])
     binair = [[1, 1, 1, 1, 1, 1, 1, 1]]
@@ -64,20 +71,81 @@ def apa102(clock_pin, data_pin, colors):
                 binairsGetal.append(0)
             binair.append(binairsGetal)
 
-        apa102_send_bytes(clock_pin, data_pin, binair)
+        pulseLedStrip(clock_pin, data_pin, binair)
         binair = [[1, 1, 1, 1, 1, 1, 1, 1]]
 
-def vlag(clockPin, dataPin, delay):
-    while True:
+def golfje(clockPin, dataPin, delay,kleuren):
+    for golf in range(0,1):
         for kleur in kleuren:
-            apa102(clockPin,dataPin,[kleur for led in range(0,9)])
+            LedStrip(clockPin,dataPin,[kleur for led in range(0,9)])
             time.sleep(delay)
 
-kleuren = [[0, 0, 255], [255, 255, 255], [255, 0, 0]]
+#Zijn de kleuren die nodig zijn.
+online = [[0, 255, 0], [0, 0, 0]]
+offline = [[0, 0, 255], [0, 0, 0]]
+away = [[0,255,255], [0, 0, 0]]
 
-vlag(clock_pin, data_pin, 0.5)
 
+#VRIENDENLIJST VERZAMELEN ----------------
+json_data_vriendenlijst = requests.get('http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key=B99D1FC3DA15306CAB4D188601446F66&steamid=76561198135983674&relationship=friend&format=json')
+json_formatted_vriendenlijst = json.loads(json_data_vriendenlijst.text)
 
+#Haalt de vrienden ID's op zodat ik daarmee kan checken.
+def vriendenOphalen():
+    lijstmetid = []
+    for i in json_formatted_vriendenlijst['friendslist']['friends']:
+        lijstmetid.append(i['steamid'])
+    return vriendenChecken(lijstmetid)
+
+#Checkt de status van de vrienden
+def vriendenChecken(lijstmetid):
+    aantalOnline = 0
+    aantalAway = 0
+    while len(lijstmetid) != 0:
+        lst = lijstmetid
+        id = lst[0]
+        URL = (' http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=B99D1FC3DA15306CAB4D188601446F66&steamids={}&format=json').format(id)
+        json_data_vriend = requests.get(URL)
+        json_formatted_vriend = json.loads(json_data_vriend.text)
+        for status in json_formatted_vriend['response']['players']:
+            if 1 == status['personastate']:
+                aantalOnline += 1
+            elif 3 == status['personastate']:
+                aantalAway += 1
+            lst.remove(lst[0])
+
+    fileOnline = open('Online.txt','r')
+    fileOnlineRead = fileOnline.read()
+
+    fileAway = open('Away.txt','r')
+    fileAwayRead = fileAway.read()
+
+    if aantalOnline > int(fileOnlineRead):
+        aantalKeer = aantalOnline - int(fileOnlineRead)
+        for aantal in range(0,aantalKeer):
+            golfje(clock_pin, data_pin, 0.5, online)
+    if aantalAway > int(fileAwayRead):
+        aantalKeer = aantalAway - int(fileAwayRead)
+        for aantal in range(0,aantalKeer):
+            golfje(clock_pin, data_pin, 0.5, away)
+    totaalNu = aantalOnline + aantalAway
+    totaalToen = int(fileOnlineRead) + int(fileAwayRead)
+    if totaalNu < totaalToen:
+        aantalKeer = totaalToen - totaalNu
+        for aantal in range(0,aantalKeer):
+            golfje(clock_pin, data_pin, 0.5, offline)
+    fileOnline.close()
+    fileAway.close()
+
+    fileOnline = open('Online.txt', 'w')
+    fileAway = open('Away.txt', 'w')
+    fileOnline.write(str(aantalOnline))
+    fileAway.write(str(aantalAway))
+
+    fileOnline.close()
+    fileAway.close()
+
+vriendenOphalen()
 
 """
 Dit is de code voor kwispelen.
