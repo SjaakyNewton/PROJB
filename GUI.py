@@ -3,6 +3,7 @@ import requests
 import json
 
 url = 'https://raw.githubusercontent.com/tijmenjoppe/AnalyticalSkills-student/master/project/data/steam.json'
+steamKey = 'B99D1FC3DA15306CAB4D188601446F66'
 
 # hieronder staan de Steam API variabelen voor de functie vriendenlijst(steam id is van Sandra's steam account dit is tijdelijk)
 json_data_vriendenlijst = requests.get('http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key=B99D1FC3DA15306CAB4D188601446F66&steamid=76561198135983674&relationship=friend&format=json')
