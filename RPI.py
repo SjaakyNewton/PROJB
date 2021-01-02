@@ -79,19 +79,26 @@ vlag(clock_pin, data_pin, 0.5)
 
 
 
-"""Dit is de code voor kwispelen"""
+"""
+Dit is de code voor kwispelen.
+
+Moet nu nog reageren op de afstandsensor. Dit is een kleine veranderen met een if statment.
+"""
+
+#Dit is de pulse functie die een stroom signaal naar de GPIO geeft.
 def pulse(pin, delay1, delay2):
     GPIO.output(pin, GPIO.HIGH)
     time.sleep(delay1)
     GPIO.output(pin, GPIO.LOW)
     time.sleep(delay2)
 
+#Dit is de data voor waar de servo op moet staan bij zijn kwispels
 def servo_pulse(pin_nr, position):
     input = position * 0.00002 + 0.0007
     delay = 0.002
     pulse(pin_nr,input,delay)
 
-
+#Dit roept het kwispelen aan
 def hondje(servo):
     GPIO.setup(servo, GPIO.OUT)
     for kwispel in range(0,3):
