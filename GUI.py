@@ -62,7 +62,28 @@ def jsonFunctie():
         lijstmetid.append(i['steamid'])
     return lijstmetid
    #dit is een functie die de STEAMIDs in een lijst stopt om te gebruiken voor online vrienden API functie
+    
+    def vriendeninfo(lijstmetid):
+    vriendenOnline = ''
+    vriendenOffline = ''
+    vriendenAway = ''
+    while len(lijstmetid) != 0:
+        lst = lijstmetid
+        id = lst[0]
+        URL = (' http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=B99D1FC3DA15306CAB4D188601446F66&steamids={}&format=json').format(id)
+        json_data_vriend = requests.get(URL)
+        json_formatted_vriend = json.loads(json_data_vriend.text)
 
+        for i in json_formatted_vriend['response']['players']:
+            gebruikersnaam = i['personaname']
+            if 1 == i['personastate']:
+                vriendenOnline += (f'Gebruikersnaam: {gebruikersnaam}  Status: Online\n')
+            elif 3 == i['personastate']:
+                vriendenAway += (f'Gebruikersnaam: {gebruikersnaam}  Status: Away\n')
+            else:
+                vriendenOffline += (f'Gebruikersnaam: {gebruikersnaam}  Status: Offline\n')
+            lst.remove(lst[0])
+    # FUNCTIE VRIENDEN ONLINE - OFFLINE
 
 def sortedOnName():
     ''''Functie die een lijst van games van het json bestand op naam sorteert'''
