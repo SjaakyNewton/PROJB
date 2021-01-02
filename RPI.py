@@ -9,6 +9,7 @@ import requests
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(0)
 
+steamKey = 'B99D1FC3DA15306CAB4D188601446F66'
 
 
 '''Dit is de code voor de led lampjes. Hij reageert nog niet automatische elke minuut. Verder doet die het keurig en reageert die op veranderingen.
