@@ -18,7 +18,7 @@ Er moeten twee files bij zijn om het werken te maken!
 Away.txt
 Online.txt
 
-De volgende pinnen zijn geclaimed:'''
+De volgende GPIO pinnen zijn geclaimed: 19, 26, 23'''
 clock_pin = 19
 data_pin = 26
 
