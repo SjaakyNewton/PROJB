@@ -6,10 +6,6 @@ import json
 url = 'https://raw.githubusercontent.com/tijmenjoppe/AnalyticalSkills-student/master/project/data/steam.json'
 steamKey = 'B99D1FC3DA15306CAB4D188601446F66'
 
-# hieronder is de Steam API voor de functie vriendenlijst
-json_data_vriendenlijst = requests.get('http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key=B99D1FC3DA15306CAB4D188601446F66&steamid=76561198135983674&relationship=friend&format=json')
-json_formatted_vriendenlijst = json.loads(json_data_vriendenlijst.text)
-
 """"
 Steam colour codes:
 #171a21 donker donker blauw
@@ -58,6 +54,8 @@ def jsonFunctie():
     return content
 
 def vriendenlijst():
+    json_data_vriendenlijst = requests.get('http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key=B99D1FC3DA15306CAB4D188601446F66&steamid=76561198135983674&relationship=friend&format=json')
+    json_formatted_vriendenlijst = json.loads(json_data_vriendenlijst.text)
     lijstmetid = []
     for i in json_formatted_vriendenlijst['friendslist']['friends']:
         lijstmetid.append(i['steamid'])
@@ -89,6 +87,34 @@ def vriendeninfo(lijstmetid):
             vriendenofflinetonen['text'] = vriendenOffline
             vriendenawaytonen['text'] = vriendenAway
     # FUNCTIE VRIENDEN ONLINE - OFFLINE
+
+''' Dit is de functie die checkt wie welke game speelt '''
+def ingame(lijstmetid):
+    ingame = ''
+    nietingame = ''
+    while len(lijstmetid) != 0:
+        lst = lijstmetid
+        id = lst[0]
+        URL = (' http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=B99D1FC3DA15306CAB4D188601446F66&steamids={}&format=json').format(id)
+        json_data_ingame = requests.get(URL)
+        json_formatted_ingame = json.loads(json_data_ingame.text)
+
+        for i in json_formatted_ingame['response']['players']:
+            gebruiker = i['personaname']
+            try:
+                game = i['gameextrainfo']
+                ingame += (f'{gebruiker} speelt {game}\n')
+            except:
+                nietingame += (f'{gebruiker} speelt geen game\n')
+                lst.remove(lst[0])
+
+    def hungergames(ingame):
+        if not ingame:
+            return('Niemand speelt momenteel een game')
+        else:
+            return((ingame))
+
+    return hungergames(ingame)
 
 def sortedOnName():
     ''''Functie die een lijst van games van het json bestand op naam sorteert'''
@@ -174,7 +200,7 @@ def binaireZoekFunctie(lst,target):
     else:
         return True
 
-''' Dit staat vet random hier maar dit is voor tkinter onlinescherm frame  '''
+''' Dit is de variabele voor de gehele vriendenlijst die voor sommige functies nodig zijn'''
 gehelevriendenlijst = vriendenlijst()
 
 '''Zegt hoe tkinter wordt gebruikt'''
@@ -190,19 +216,18 @@ startScherm = Frame(master=root,bg = '#1b2838')
 startScherm.pack()
 startSchermWelkomLabel = Label(master=startScherm,text='Welkom!',bg = '#1b2838',fg='white',font=('Arial', 50, 'bold italic'))
 startSchermWelkomLabel.grid(pady=30)
-startSchermOnline = Button(master=startScherm,text='Vriendenlijst',command=lambda:[onlineVriendenFrame(), vriendenlijst(),vriendeninfo(gehelevriendenlijst)],bg = '#2a475e',fg='#c7d5e0',width=20, height=2)
-startSchermOnline.grid(row=1, column=0, pady=20,sticky='nesw')
-startSchermGames = Button(master=startScherm,text='Games',command=playedGamesFrame,bg = '#2a475e',fg='#c7d5e0', width=20, height=2)
-startSchermGames.grid(row=2, column=0, pady=20,sticky='nesw')
-startSchermGameLijst = Button(master=startScherm,text='Games lijst',command=gameLijstFrame,bg = '#2a475e',fg='#c7d5e0', width=20, height=2)
-startSchermGameLijst.grid(row=3, column=0, pady=20,sticky='nesw')
-
+startSchermOnline = Button(master=startScherm,text='Vriendenlijst',command=lambda:[onlineVriendenFrame(), vriendenlijst(),vriendeninfo(gehelevriendenlijst)],bg = '#2a475e',fg='#c7d5e0',width=15, height=2)
+startSchermOnline.grid(row=1, column=0, pady=15,sticky='nesw')
+startSchermGames = Button(master=startScherm,text='Game activiteit',command=lambda:[playedGamesFrame(), ingame(gehelevriendenlijst)],bg = '#2a475e',fg='#c7d5e0', width=15, height=2)
+startSchermGames.grid(row=2, column=0, pady=15,sticky='nesw')
+startSchermGameLijst = Button(master=startScherm,text='Games lijst',command=gameLijstFrame,bg = '#2a475e',fg='#c7d5e0', width=15, height=2)
+startSchermGameLijst.grid(row=3, column=0, pady=15,sticky='nesw')
 ''' Logo Steam in beginscherm '''
 logo = ImageTk.PhotoImage(Image.open("steamlogo.png"))
 logolabel = Label(master=startScherm, image=logo)
 logolabel.grid(row=4, column=0, padx=40)
 
-'''Hier staan alle instellingen voor het scherm waar je kunt zien wie online is.'''
+'''Hier staan alle instellingen voor het scherm waar je kunt zien wie online is. Moet nog gekoppeld worden aan Steam API.'''
 onlineScherm = Frame(master=root,bg = '#1b2838')
 onlineScherm.pack()
 onlineVrienden = Label(master=onlineScherm,text='Momenteel online:    ',bg = '#1b2838',fg='#0197CF',font=(20))
@@ -222,9 +247,11 @@ awayVrienden.grid(row=0, column=1)
 vriendenawaytonen = Label(master=onlineScherm, bg = '#1b2838', fg='white')
 vriendenawaytonen.grid(row=1, column=1)
 
+'''  Instellingen voor degene die mogelijk online zijn  '''
 mogelijkOnline = Label(master=onlineScherm,text='Deze vrienden zijn nu vaak online:',bg = '#0197CF',fg='white')
 #mogelijkOnline.grid(pady=3,sticky='nesw')
 
+''' Terugknop onlinescherm'''
 terugButton = Button(master=onlineScherm, text ='Terug',command=startFrame,bg = '#2a475e',fg='#c7d5e0')
 terugButton.grid(row=2, column=1)
 
@@ -233,6 +260,8 @@ gamesScherm = Frame(master=root,bg = '#1b2838')
 gamesScherm.pack()
 gamesNuGespeeld = Label(master=gamesScherm,text='Games die nu gespeeld worden:',bg = '#0197CF',fg='white')
 gamesNuGespeeld.grid(pady=3,sticky='nesw')
+
+
 huidigeGame = Label(master=gamesScherm, text='Dit is tijdelijk weg gehaald door Isaak',bg = '#0197CF',fg='white')
 huidigeGame.grid(pady=3,sticky='nesw')
 #Dit moet nog gekoppeld worden met de API daarom heb ik iets hier wegghaald. Ook omdat ik de jsonFunctie heb aangepast.
