@@ -91,7 +91,6 @@ def vriendeninfo(lijstmetid):
 ''' Dit is de functie die checkt wie welke game speelt '''
 def ingame(lijstmetid):
     ingame = ''
-    nietingame = ''
     while len(lijstmetid) != 0:
         lst = lijstmetid
         id = lst[0]
@@ -105,16 +104,15 @@ def ingame(lijstmetid):
                 game = i['gameextrainfo']
                 ingame += (f'{gebruiker} speelt {game}\n')
             except:
-                nietingame += (f'{gebruiker} speelt geen game\n')
-                lst.remove(lst[0])
+                pass
 
-    def hungergames(ingame):
-        if not ingame:
-            return('Niemand speelt momenteel een game')
-        else:
-            return((ingame))
+            lst.remove(lst[0])
 
-    return hungergames(ingame)
+    if not ingame:
+        niemand = "Niemand speelt momenteel een game"
+        huidigeGametonen['text'] = niemand
+    else:
+        huidigeGametonen['text'] = ingame
 
 def sortedOnName():
     ''''Functie die een lijst van games van het json bestand op naam sorteert'''
@@ -218,7 +216,7 @@ startSchermWelkomLabel = Label(master=startScherm,text='Welkom!',bg = '#1b2838',
 startSchermWelkomLabel.grid(pady=30)
 startSchermOnline = Button(master=startScherm,text='Vriendenlijst',command=lambda:[onlineVriendenFrame(), vriendenlijst(),vriendeninfo(gehelevriendenlijst)],bg = '#2a475e',fg='#c7d5e0',width=15, height=2)
 startSchermOnline.grid(row=1, column=0, pady=15,sticky='nesw')
-startSchermGames = Button(master=startScherm,text='Game activiteit',command=lambda:[playedGamesFrame(), ingame(gehelevriendenlijst)],bg = '#2a475e',fg='#c7d5e0', width=15, height=2)
+startSchermGames = Button(master=startScherm,text='Game activiteit',command=lambda:[playedGamesFrame(),ingame(gehelevriendenlijst)],bg = '#2a475e',fg='#c7d5e0', width=15, height=2)
 startSchermGames.grid(row=2, column=0, pady=15,sticky='nesw')
 startSchermGameLijst = Button(master=startScherm,text='Games lijst',command=gameLijstFrame,bg = '#2a475e',fg='#c7d5e0', width=15, height=2)
 startSchermGameLijst.grid(row=3, column=0, pady=15,sticky='nesw')
@@ -260,12 +258,10 @@ gamesScherm = Frame(master=root,bg = '#1b2838')
 gamesScherm.pack()
 gamesNuGespeeld = Label(master=gamesScherm,text='Games die nu gespeeld worden:',bg = '#0197CF',fg='white')
 gamesNuGespeeld.grid(pady=3,sticky='nesw')
+huidigeGametonen = Label(master=gamesScherm, bg = '#0197CF',fg='white')
+huidigeGametonen.grid(pady=3,sticky='nesw')
 
-
-huidigeGame = Label(master=gamesScherm, text='Dit is tijdelijk weg gehaald door Isaak',bg = '#0197CF',fg='white')
-huidigeGame.grid(pady=3,sticky='nesw')
 #Dit moet nog gekoppeld worden met de API daarom heb ik iets hier wegghaald. Ook omdat ik de jsonFunctie heb aangepast.
-
 gamesMogelijkGespeeld = Label(master=gamesScherm,text='Games die nu mogelijk gespeeld worden:',bg = '#0197CF',fg='white')
 gamesMogelijkGespeeld.grid(pady=3,sticky='nesw')
 terugButton = Button(master=gamesScherm, text ='Terug',command=startFrame,bg = '#2a475e',fg='#c7d5e0')
