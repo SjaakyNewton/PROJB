@@ -29,11 +29,13 @@ def startFrame():
 def onlineVriendenFrame():
     startScherm.forget()
     onlineScherm.pack()
+    vriendeninfo(vriendenlijst())
     root.geometry('400x400')
     #vrienden die online zijn moeten getoond worden, ook wat je verwacht wat online komt.
 
 def playedGamesFrame():
     startScherm.forget()
+    ingame(vriendenlijst())
     gamesScherm.pack()
     root.geometry('400x400')
     #games die gespeeld worden en mogelijk nu gespeeld worden.
@@ -214,9 +216,9 @@ startScherm = Frame(master=root,bg = '#1b2838')
 startScherm.pack()
 startSchermWelkomLabel = Label(master=startScherm,text='Welkom!',bg = '#1b2838',fg='white',font=('Arial', 50, 'bold italic'))
 startSchermWelkomLabel.grid(pady=30)
-startSchermOnline = Button(master=startScherm,text='Vriendenlijst',command=lambda:[onlineVriendenFrame(),vriendeninfo(gehelevriendenlijst)],bg = '#2a475e',fg='#c7d5e0',width=15, height=2)
+startSchermOnline = Button(master=startScherm,text='Vriendenlijst',command=onlineVriendenFrame,bg = '#2a475e',fg='#c7d5e0',width=15, height=2)
 startSchermOnline.grid(row=1, column=0, pady=15,sticky='nesw')
-startSchermGames = Button(master=startScherm,text='Game activiteit',command=lambda:[playedGamesFrame(),ingame(gehelevriendenlijst)],bg = '#2a475e',fg='#c7d5e0', width=15, height=2)
+startSchermGames = Button(master=startScherm,text='Game activiteit',command=playedGamesFrame,bg = '#2a475e',fg='#c7d5e0', width=15, height=2)
 startSchermGames.grid(row=2, column=0, pady=15,sticky='nesw')
 startSchermGameLijst = Button(master=startScherm,text='Games lijst',command=gameLijstFrame,bg = '#2a475e',fg='#c7d5e0', width=15, height=2)
 startSchermGameLijst.grid(row=3, column=0, pady=15,sticky='nesw')
