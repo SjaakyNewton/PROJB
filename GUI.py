@@ -116,6 +116,31 @@ def ingame(lijstmetid):
     else:
         huidigeGametonen['text'] = ingame
 
+''' Dit is de functie die checkt welke games(2 games per friend) de afgelopen 2 weken het meest gespeeld zijn in mijn vriendenlijst '''
+def gamesplayed(lijstmetid):
+    games_played = {}
+    while len(lijstmetid) != 0:
+        lst = lijstmetid
+        id = lst[0]
+        URLG = ('http://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/?key=B99D1FC3DA15306CAB4D188601446F66&steamid={}&count=2&format=json').format(id)
+        json_data_gamesplayed = requests.get(URLG)
+        json_formatted_gamesplayed = json.loads(json_data_gamesplayed.text)
+
+        for i in json_formatted_gamesplayed:
+            try:
+                for i in json_formatted_gamesplayed['response']['games']:
+                    gamesp = i['name']
+                    playtime = i['playtime_2weeks']
+                    if gamesp in games_played:
+                        oudevalue = games_played[gamesp]
+                        playtime = oudevalue + int(playtime)
+                    games_played[gamesp] = playtime
+                lst.remove(lst[0])
+            except:
+                lst.remove(lst[0])
+
+    return games_played
+
 def sortedOnName():
     ''''Functie die een lijst van games van het json bestand op naam sorteert'''
     gamesTonen.delete(0,'end')
@@ -217,15 +242,19 @@ startScherm.pack()
 startSchermWelkomLabel = Label(master=startScherm,text='Welkom!',bg = '#1b2838',fg='white',font=('Arial', 50, 'bold italic'))
 startSchermWelkomLabel.grid(pady=30)
 startSchermOnline = Button(master=startScherm,text='Vriendenlijst',command=onlineVriendenFrame,bg = '#2a475e',fg='#c7d5e0',width=15, height=2)
-startSchermOnline.grid(row=1, column=0, pady=15,sticky='nesw')
+startSchermOnline.grid(row=1, column=0,sticky='nesw')
+startSchermmogelijkonline = Button(master=startScherm,text='Meest gespeelde games',bg = '#2a475e',fg='#c7d5e0',width=15, height=2)
+startSchermmogelijkonline.grid(row=4, column=0,sticky='nesw')
 startSchermGames = Button(master=startScherm,text='Game activiteit',command=playedGamesFrame,bg = '#2a475e',fg='#c7d5e0', width=15, height=2)
-startSchermGames.grid(row=2, column=0, pady=15,sticky='nesw')
+startSchermGames.grid(row=3, column=0, sticky='nesw')
 startSchermGameLijst = Button(master=startScherm,text='Games lijst',command=gameLijstFrame,bg = '#2a475e',fg='#c7d5e0', width=15, height=2)
-startSchermGameLijst.grid(row=3, column=0, pady=15,sticky='nesw')
+startSchermGameLijst.grid(row=5, column=0,sticky='nesw')
+startSchermGamestatistieken = Button(master=startScherm,text='Globale game statistieken',bg = '#2a475e',fg='#c7d5e0', width=15, height=2)
+startSchermGamestatistieken.grid(row=6, column=0,sticky='nesw')
 ''' Logo Steam in beginscherm '''
 logo = ImageTk.PhotoImage(Image.open("steamlogo.png"))
 logolabel = Label(master=startScherm, image=logo)
-logolabel.grid(row=4, column=0, padx=40)
+logolabel.grid(row=7, column=0, padx=40, pady=40)
 
 '''Hier staan alle instellingen voor het scherm waar je kunt zien wie online is. Moet nog gekoppeld worden aan Steam API.'''
 onlineScherm = Frame(master=root,bg = '#1b2838')
@@ -261,13 +290,17 @@ gamesScherm.pack()
 gamesNuGespeeld = Label(master=gamesScherm,text='Huidig gespeelde games:',font=('bold italic', 18) ,bg = '#1b2838',fg='white')
 gamesNuGespeeld.grid(row=0, column=0, pady=10, padx=10)
 huidigeGametonen = Label(master=gamesScherm, bg = '#1b2838',fg='white')
-huidigeGametonen.grid(pady=3,sticky='nesw')
+huidigeGametonen.grid(row=1, column=0, pady=10, padx=10)
+
+''' Dit is de lege grid zodat ik de knop goed kan placeren '''
+tussengrid = Label(master=gamesScherm, bg = '#1b2838')
+tussengrid.grid(row=2, column=1)
 
 #Dit moet nog gekoppeld worden met de API daarom heb ik iets hier wegghaald. Ook omdat ik de jsonFunctie heb aangepast.
 gamesMogelijkGespeeld = Label(master=gamesScherm,text='Mogelijke gespeelde games:',font=('bold italic', 18),bg = '#1b2838',fg='white')
 gamesMogelijkGespeeld.grid(row=0, column=2, pady=10, padx=10)
 terugButton = Button(master=gamesScherm, text ='Terug',command=startFrame,bg = '#2a475e',fg='#c7d5e0')
-terugButton.grid(sticky='nesw')
+terugButton.grid(row=3, column=1)
 
 '''Hier staan alle instellingen voor het zoeken van games in een game lijst die door school is geleverd met een json bestand.'''
 gameLijstScherm = Frame(master=root,bg = '#1b2838')
