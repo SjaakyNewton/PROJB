@@ -2,6 +2,14 @@ from tkinter import *
 from PIL import ImageTk,Image
 import requests
 import json
+import os
+import sys
+
+sys.setrecursionlimit(4000)
+
+if os.environ.get('DISPLAY','') == '':
+    print('no display found. Using :0.0')
+    os.environ.__setitem__('DISPLAY', ':0.0')
 
 url = 'https://raw.githubusercontent.com/tijmenjoppe/AnalyticalSkills-student/master/project/data/steam.json'
 steamKey = 'B99D1FC3DA15306CAB4D188601446F66'
@@ -116,94 +124,102 @@ def ingame(lijstmetid):
     else:
         huidigeGametonen['text'] = ingame
 
-''' Dit is de functie die checkt welke games(2 games per friend) de afgelopen 2 weken het meest gespeeld zijn in mijn vriendenlijst '''
-def gamesplayed(lijstmetid):
-    games_played = {}
-    while len(lijstmetid) != 0:
-        lst = lijstmetid
-        id = lst[0]
-        URLG = ('http://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/?key=B99D1FC3DA15306CAB4D188601446F66&steamid={}&count=2&format=json').format(id)
-        json_data_gamesplayed = requests.get(URLG)
-        json_formatted_gamesplayed = json.loads(json_data_gamesplayed.text)
+def partition(arr, low, high,zoekend):
+    i = (low - 1)
+    pivot = arr[high][zoekend]
+    for j in range(low, high):
+        if arr[j][zoekend] <= pivot:
+            i = i + 1
+            arr[i], arr[j] = arr[j], arr[i]
+    arr[i + 1], arr[high] = arr[high], arr[i + 1]
+    return (i + 1)
 
-        for i in json_formatted_gamesplayed:
-            try:
-                for i in json_formatted_gamesplayed['response']['games']:
-                    gamesp = i['name']
-                    playtime = i['playtime_2weeks']
-                    if gamesp in games_played:
-                        oudevalue = games_played[gamesp]
-                        playtime = oudevalue + int(playtime)
-                    games_played[gamesp] = playtime
-                lst.remove(lst[0])
-            except:
-                lst.remove(lst[0])
-
-    return games_played
+def quickSort(arr, low, high,zoekend):
+    if len(arr) == 1:
+        return arr
+    if low < high:
+        pi = partition(arr, low, high,zoekend)
+        quickSort(arr, low, pi - 1,zoekend)
+        quickSort(arr, pi + 1, high,zoekend)
+    return arr
 
 def sortedOnName():
     ''''Functie die een lijst van games van het json bestand op naam sorteert'''
     gamesTonen.delete(0,'end')
-    content = jsonFunctie()
-    game = sorted(content, key=lambda item: item.get('name'))
-    for item in game:
-        gamesTonen.insert('end',item['name'])
+    zoek = 'name'
+    arr = jsonFunctie()
+    n = len(arr)
+    quickSort(arr, 0, n - 1,zoek)
+    for item in range(n):
+        gamesTonen.insert('end',arr[item][zoek])
     return
 
 def sortedOnNameRevers():
     ''''Functie die een lijst van games van het json bestand op naam sorteert maar dan reversed'''
     gamesTonen.delete(0,'end')
-    content = jsonFunctie()
-    game = sorted(content, key=lambda item: item.get('name'),reverse=True)
-    for item in game:
-        gamesTonen.insert('end',item['name'])
+    zoek = 'name'
+    arr = jsonFunctie()
+    n = len(arr)
+    quickSort(arr, 0, n - 1,zoek)
+    for item in range(n):
+        gamesTonen.insert('0',arr[item][zoek]) #tijdelijke fix?
     return
 
 def sortedOnPrice():
     ''''Functie die een lijst van games van het json bestand op prijs sorteert'''
-    gamesTonen.delete(0, 'end')
-    content = jsonFunctie()
-    game = sorted(content, key=lambda item: item.get('price'))
-    for item in game:
-        gamesTonen.insert('end','€'+str(item['price'])+'; '+ item['name'])
+    gamesTonen.delete(0,'end')
+    zoek = 'price'
+    arr = jsonFunctie()
+    n = len(arr)
+    quickSort(arr, 0, n - 1,zoek)
+    for item in range(n):
+        gamesTonen.insert('end','€'+str(arr[item][zoek])+'; '+ arr[item]['name'])
     return
 
 def sortedOnPriceRevers():
     ''''Functie die een lijst van games van het json bestand op prijs sorteert maar dan reversed '''
-    gamesTonen.delete(0, 'end')
-    content = jsonFunctie()
-    game = sorted(content, key=lambda item: item.get('price'),reverse=True)
-    for item in game:
-        gamesTonen.insert('end','€'+str(item['price'])+'; '+ item['name'])
+    gamesTonen.delete(0,'end')
+    zoek = 'price'
+    arr = jsonFunctie()
+    n = len(arr)
+    quickSort(arr, 0, n - 1,zoek)
+    for item in range(n):
+        gamesTonen.insert('0','€'+str(arr[item][zoek])+'; '+ arr[item]['name'])
     return
 
 def sortedOnReviewPositive():
     ''''Functie die een lijst van games van het json bestand op reviews sorteert die positief zijn'''
     gamesTonen.delete(0, 'end')
-    content = jsonFunctie()
-    game = sorted(content, key=lambda item: item.get('positive_ratings'),reverse=True)
-    for item in game:
-        gamesTonen.insert('end',str(item['positive_ratings'])+'; '+ item['name'])
+    zoek = 'positive_ratings'
+    arr = jsonFunctie()
+    n = len(arr)
+    quickSort(arr, 0, n - 1, zoek)
+    for item in range(n):
+        gamesTonen.insert('end', str(arr[item][zoek])+'; '+ arr[item]['name'])
     return
 
 def sortedOnReviewNegative():
     ''''Functie die een lijst van games van het json bestand op reviews sorteert die negatief zijn'''
     gamesTonen.delete(0, 'end')
-    content = jsonFunctie()
-    game = sorted(content, key=lambda item: item.get('negative_ratings'),reverse=True)
-    for item in game:
-        gamesTonen.insert('end',str(item['negative_ratings'])+'; '+ item['name'])
+    zoek = 'positive_ratings'
+    arr = jsonFunctie()
+    n = len(arr)
+    quickSort(arr, 0, n - 1, zoek)
+    for item in range(n):
+        gamesTonen.insert('0', str(arr[item][zoek])+'; '+ arr[item]['name'])
     return
 
 
 def sortedGamesZoekendOpNaam():
     ''''Functie die een lijst van games van het json bestand opzoek waar naam in is gezet. Indien je naam er al voor een deel inzit wordt de game mee genomen.
     Indien de lijst leeg is meld die dat (Dus niks gevonden). Er wordt gezocht met lower cases. Hierdoor kun je gewoon alles doorzoeken en gaat die niet pietje precies doen.'''
-    gamesTonen.delete(0,'end')
-    content = jsonFunctie()
-    game = sorted(content, key=lambda item: item.get('name'))
+    gamesTonen.delete(0, 'end')
+    zoek = 'name'
+    arr = jsonFunctie()
+    n = len(arr)
+    quickSort(arr, 0, n - 1, zoek)
     zoekend = zoekendEntry.get()
-    for item in game:
+    for item in arr:
         item = item['name']
         if zoekend.lower() in item.lower():
             gamesTonen.insert('end',item)
@@ -242,19 +258,15 @@ startScherm.pack()
 startSchermWelkomLabel = Label(master=startScherm,text='Welkom!',bg = '#1b2838',fg='white',font=('Arial', 50, 'bold italic'))
 startSchermWelkomLabel.grid(pady=30)
 startSchermOnline = Button(master=startScherm,text='Vriendenlijst',command=onlineVriendenFrame,bg = '#2a475e',fg='#c7d5e0',width=15, height=2)
-startSchermOnline.grid(row=1, column=0,sticky='nesw')
-startSchermmogelijkonline = Button(master=startScherm,text='Meest gespeelde games',bg = '#2a475e',fg='#c7d5e0',width=15, height=2)
-startSchermmogelijkonline.grid(row=4, column=0,sticky='nesw')
+startSchermOnline.grid(row=1, column=0, pady=15,sticky='nesw')
 startSchermGames = Button(master=startScherm,text='Game activiteit',command=playedGamesFrame,bg = '#2a475e',fg='#c7d5e0', width=15, height=2)
-startSchermGames.grid(row=3, column=0, sticky='nesw')
+startSchermGames.grid(row=2, column=0, pady=15,sticky='nesw')
 startSchermGameLijst = Button(master=startScherm,text='Games lijst',command=gameLijstFrame,bg = '#2a475e',fg='#c7d5e0', width=15, height=2)
-startSchermGameLijst.grid(row=5, column=0,sticky='nesw')
-startSchermGamestatistieken = Button(master=startScherm,text='Globale game statistieken',bg = '#2a475e',fg='#c7d5e0', width=15, height=2)
-startSchermGamestatistieken.grid(row=6, column=0,sticky='nesw')
+startSchermGameLijst.grid(row=3, column=0, pady=15,sticky='nesw')
 ''' Logo Steam in beginscherm '''
 logo = ImageTk.PhotoImage(Image.open("steamlogo.png"))
 logolabel = Label(master=startScherm, image=logo)
-logolabel.grid(row=7, column=0, padx=40, pady=40)
+logolabel.grid(row=4, column=0, padx=40)
 
 '''Hier staan alle instellingen voor het scherm waar je kunt zien wie online is. Moet nog gekoppeld worden aan Steam API.'''
 onlineScherm = Frame(master=root,bg = '#1b2838')
@@ -290,17 +302,13 @@ gamesScherm.pack()
 gamesNuGespeeld = Label(master=gamesScherm,text='Huidig gespeelde games:',font=('bold italic', 18) ,bg = '#1b2838',fg='white')
 gamesNuGespeeld.grid(row=0, column=0, pady=10, padx=10)
 huidigeGametonen = Label(master=gamesScherm, bg = '#1b2838',fg='white')
-huidigeGametonen.grid(row=1, column=0, pady=10, padx=10)
-
-''' Dit is de lege grid zodat ik de knop goed kan placeren '''
-tussengrid = Label(master=gamesScherm, bg = '#1b2838')
-tussengrid.grid(row=2, column=1)
+huidigeGametonen.grid(pady=3,sticky='nesw')
 
 #Dit moet nog gekoppeld worden met de API daarom heb ik iets hier wegghaald. Ook omdat ik de jsonFunctie heb aangepast.
 gamesMogelijkGespeeld = Label(master=gamesScherm,text='Mogelijke gespeelde games:',font=('bold italic', 18),bg = '#1b2838',fg='white')
 gamesMogelijkGespeeld.grid(row=0, column=2, pady=10, padx=10)
 terugButton = Button(master=gamesScherm, text ='Terug',command=startFrame,bg = '#2a475e',fg='#c7d5e0')
-terugButton.grid(row=3, column=1)
+terugButton.grid(sticky='nesw')
 
 '''Hier staan alle instellingen voor het zoeken van games in een game lijst die door school is geleverd met een json bestand.'''
 gameLijstScherm = Frame(master=root,bg = '#1b2838')
