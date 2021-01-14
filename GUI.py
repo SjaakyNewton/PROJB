@@ -2,13 +2,14 @@ from tkinter import *
 from PIL import ImageTk,Image
 import requests
 import json
-import os
 import sys
 
+#Standaard is dit 1000 maar dat vond het programma te weinig dus verhoogt tot dat die het genoeg vond.
 sys.setrecursionlimit(4000)
 
 
 url = 'https://raw.githubusercontent.com/tijmenjoppe/AnalyticalSkills-student/master/project/data/steam.json'
+
 steamKey = 'B99D1FC3DA15306CAB4D188601446F66'
 
 """"
