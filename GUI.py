@@ -7,9 +7,7 @@ import sys
 #Standaard is dit 1000 maar dat vond het programma te weinig dus verhoogt tot dat die het genoeg vond.
 sys.setrecursionlimit(4000)
 
-
 url = 'https://raw.githubusercontent.com/tijmenjoppe/AnalyticalSkills-student/master/project/data/steam.json'
-
 steamKey = 'B99D1FC3DA15306CAB4D188601446F66'
 
 """"
@@ -28,6 +26,7 @@ def startFrame():
     onlineScherm.forget()
     gamesScherm.forget()
     gameLijstScherm.forget()
+    vriendengames.forget()
     startScherm.pack()
     root.geometry('400x400')
     #optie scherm met wat je wilt zien
@@ -44,7 +43,7 @@ def playedGamesFrame():
     ingame(vriendenlijst())
     gamesScherm.pack()
     root.geometry('400x400')
-    #games die gespeeld worden en mogelijk nu gespeeld worden.
+    #games die gespeeld worden.
 
 def gameLijstFrame():
     startScherm.forget()
@@ -53,6 +52,12 @@ def gameLijstFrame():
     sortedOnName()
     root.geometry('400x400')
     #Games die in steam staan. Worden uit een json bestand gehaald
+
+def vriendengamesFrame():
+    startScherm.forget()
+    vriendengames.pack()
+    statsvriend(gehelevriendenlijst)
+    root.geometry('400x400')
 
 def jsonFunctie():
     ''''Functie die het json bestand uitleest. Dit schilt in elke andere functie de moeite om het ergens vandaan te halen.
@@ -121,6 +126,43 @@ def ingame(lijstmetid):
         huidigeGametonen['text'] = niemand
     else:
         huidigeGametonen['text'] = ingame
+
+''' Dit is de functie die checkt welke games(2 games per friend) de afgelopen 2 weken het meest gespeeld zijn in mijn vriendenlijst '''
+def gamesplayed(lijstmetid):
+    games_played = {}
+    while len(lijstmetid) != 0:
+        lst = lijstmetid
+        id = lst[0]
+        URLG = ('http://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/?key=B99D1FC3DA15306CAB4D188601446F66&steamid={}&count=2&format=json').format(id)
+        json_data_gamesplayed = requests.get(URLG)
+        json_formatted_gamesplayed = json.loads(json_data_gamesplayed.text)
+
+        for i in json_formatted_gamesplayed:
+            try:
+                for i in json_formatted_gamesplayed['response']['games']:
+                    gamesp = i['name']
+                    playtime = i['playtime_2weeks']
+                    if gamesp in games_played:
+                        oudevalue = games_played[gamesp]
+                        playtime = oudevalue + int(playtime)
+                    games_played[gamesp] = round(playtime / 60)
+                lst.remove(lst[0])
+            except:
+                lst.remove(lst[0])
+
+    return games_played
+
+''' Toont aantal uren gespeeld huidige dag '''
+def statsvriend(lijstmetid):
+    lijstje = gamesplayed(lijstmetid).values()
+    totaal = sum(lijstje)
+    lengte = len(lijstje)
+    gemiddelde = round(totaal / lengte, 2)
+    range = max(lijstje) - min(lijstje)
+
+    totaalurentonen['text'] = totaal
+    gemiddeldurentonen['text'] = gemiddelde
+    spreidingsbreedtetonen['text'] = range
 
 def partition(arr, low, high,zoekend):
     i = (low - 1)
@@ -256,17 +298,21 @@ startScherm.pack()
 startSchermWelkomLabel = Label(master=startScherm,text='Welkom!',bg = '#1b2838',fg='white',font=('Arial', 50, 'bold italic'))
 startSchermWelkomLabel.grid(pady=30)
 startSchermOnline = Button(master=startScherm,text='Vriendenlijst',command=onlineVriendenFrame,bg = '#2a475e',fg='#c7d5e0',width=15, height=2)
-startSchermOnline.grid(row=1, column=0, pady=15,sticky='nesw')
+startSchermOnline.grid(row=1, column=0,sticky='nesw')
+startSchermvriendenstat = Button(master=startScherm,text='Vriendenlijst game statistieken',command=vriendengamesFrame,bg = '#2a475e',fg='#c7d5e0',width=15, height=2)
+startSchermvriendenstat.grid(row=4, column=0,sticky='nesw')
 startSchermGames = Button(master=startScherm,text='Game activiteit',command=playedGamesFrame,bg = '#2a475e',fg='#c7d5e0', width=15, height=2)
-startSchermGames.grid(row=2, column=0, pady=15,sticky='nesw')
+startSchermGames.grid(row=3, column=0, sticky='nesw')
 startSchermGameLijst = Button(master=startScherm,text='Games lijst',command=gameLijstFrame,bg = '#2a475e',fg='#c7d5e0', width=15, height=2)
-startSchermGameLijst.grid(row=3, column=0, pady=15,sticky='nesw')
+startSchermGameLijst.grid(row=5, column=0,sticky='nesw')
+startSchermGamestatistieken = Button(master=startScherm,text='Globale game statistieken',bg = '#2a475e',fg='#c7d5e0', width=15, height=2)
+startSchermGamestatistieken.grid(row=6, column=0,sticky='nesw')
 ''' Logo Steam in beginscherm '''
 logo = ImageTk.PhotoImage(Image.open("steamlogo.png"))
 logolabel = Label(master=startScherm, image=logo)
-logolabel.grid(row=4, column=0, padx=40)
+logolabel.grid(row=7, column=0, padx=40, pady=40)
 
-'''Hier staan alle instellingen voor het scherm waar je kunt zien wie online is. Moet nog gekoppeld worden aan Steam API.'''
+'''Hier staan alle instellingen voor het scherm waar je kunt zien wie online is.'''
 onlineScherm = Frame(master=root,bg = '#1b2838')
 onlineScherm.pack()
 onlineVrienden = Label(master=onlineScherm,text='Momenteel online:    ',bg = '#1b2838',fg='#0197CF',font=(20))
@@ -294,25 +340,44 @@ mogelijkOnline = Label(master=onlineScherm,text='Deze vrienden zijn nu vaak onli
 terugButton = Button(master=onlineScherm, text ='Terug',command=startFrame,bg = '#2a475e',fg='#c7d5e0')
 terugButton.grid(row=2, column=1)
 
-'''Hier staan alle instellingen voor het scherm waar je kunt zien welke games gespeeld worden. Moet nog gekoppeld worden aan Steam API.'''
+'''Hier staan alle instellingen voor het scherm waar je kunt zien welke games gespeeld worden.'''
 gamesScherm = Frame(master=root,bg = '#1b2838')
 gamesScherm.pack()
-gamesNuGespeeld = Label(master=gamesScherm,text='Huidig gespeelde games:',font=('bold italic', 18) ,bg = '#1b2838',fg='white')
+gamesNuGespeeld = Label(master=gamesScherm,text='Huidig gespeelde games:',font=('bold italic', 18) ,bg = '#1b2838',fg='#0197CF')
 gamesNuGespeeld.grid(row=0, column=0, pady=10, padx=10)
 huidigeGametonen = Label(master=gamesScherm, bg = '#1b2838',fg='white')
-huidigeGametonen.grid(pady=3,sticky='nesw')
-
-#Dit moet nog gekoppeld worden met de API daarom heb ik iets hier wegghaald. Ook omdat ik de jsonFunctie heb aangepast.
-gamesMogelijkGespeeld = Label(master=gamesScherm,text='Mogelijke gespeelde games:',font=('bold italic', 18),bg = '#1b2838',fg='white')
-gamesMogelijkGespeeld.grid(row=0, column=2, pady=10, padx=10)
+huidigeGametonen.grid(row=1, column=0, pady=10, padx=10)
 terugButton = Button(master=gamesScherm, text ='Terug',command=startFrame,bg = '#2a475e',fg='#c7d5e0')
-terugButton.grid(sticky='nesw')
+terugButton.grid(row=2, column=0)
+''' Dit is de lege grid zodat ik de knop goed kan placeren '''
+tussengrid = Label(master=gamesScherm, bg = '#1b2838')
+tussengrid.grid(row=2, column=1)
+
+''' Scherm voor vrienden speeltijd-, gamestatistieken  '''
+vriendengames = Frame(master=root, bg='#1b2838')
+vriendengames.pack()
+totaaluren = Label(master=vriendengames, text='Totaal gespeelde uren afgelopen 2 weken', bg='#1b2838', fg='#0197CF', font=(3))
+totaaluren.grid(row=0, column=0)
+totaalurentonen = Label(master=vriendengames)
+totaalurentonen.grid(row=1, column=0)
+gemiddelduren = Label(master=vriendengames, text='Gemiddeld gespeelde uren afgelopen 2 weken', bg='#1b2838', fg='#0197CF', font=(3))
+gemiddelduren.grid(row =2, column=0)
+gemiddeldurentonen = Label(master=vriendengames)
+gemiddeldurentonen.grid(row=3, column=0)
+spreidingsbreedte = Label(master=vriendengames, text='Spreidingsbreedte tussen de minst- en meest gespeelde games', bg='#1b2838', fg='#0197CF', font=(3))
+spreidingsbreedte.grid(row=4, column=0)
+toevoeginkje = Label(master=vriendengames, text='(in uren)', bg='#1b2838', fg='#0197CF')
+toevoeginkje.grid(row=5, column=0)
+spreidingsbreedtetonen = Label(master=vriendengames)
+spreidingsbreedtetonen.grid(row=6, column=0)
+terugButton = Button(master=vriendengames, text ='Terug',command=startFrame,bg = '#2a475e',fg='#c7d5e0')
+terugButton.grid(row=7, column=0, pady=50)
 
 '''Hier staan alle instellingen voor het zoeken van games in een game lijst die door school is geleverd met een json bestand.'''
 gameLijstScherm = Frame(master=root,bg = '#1b2838')
 gameLijstScherm.pack()
 scrolbar = Scrollbar(master=gameLijstScherm)
-scrolbar.grid(row=1,column=2,sticky='nesw')
+scrolbar.grid(row=1,column=2)
 gamesDieErZijn = Label(master=gameLijstScherm,bg = '#1b2838',fg='white',text='Alle games: ',font=(20))
 gamesDieErZijn.grid(row=0, pady=4,columnspan=2)
 gamesTonen = Listbox(master=gameLijstScherm,bg = '#0197CF',fg='white',yscrollcommand=scrolbar.set,width=50)
@@ -332,8 +397,10 @@ sorteerOpnegatief = Button(master=gameLijstScherm,text='Sorteer op Negatief',com
 sorteerOpnegatief.grid(row=4,column=1,sticky='nesw', pady=4)
 zoekendEntry = Entry(master=gameLijstScherm)
 zoekendEntry.grid(row=5,sticky='nesw', pady=4,columnspan=2)
-zoekendButton = Button(master=gameLijstScherm,command=sortedGamesZoekendOpNaam)
-zoekendButton.grid(row=5,column=2,sticky='nesw')
+
+zoekendButton = Button(master=gameLijstScherm,command=sortedGamesZoekendOpNaam, text='Zoek' , bg='#2a475e', fg='white')
+zoekendButton.grid(row=5,column=2, padx=10)
+
 terugButton = Button(master=gameLijstScherm, text ='Terug',command=startFrame,bg = '#2a475e',fg='#c7d5e0')
 terugButton.grid(row=6,sticky='nesw', pady=4,columnspan=2)
 
