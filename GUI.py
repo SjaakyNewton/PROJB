@@ -7,9 +7,6 @@ import sys
 
 sys.setrecursionlimit(4000)
 
-if os.environ.get('DISPLAY','') == '':
-    print('no display found. Using :0.0')
-    os.environ.__setitem__('DISPLAY', ':0.0')
 
 url = 'https://raw.githubusercontent.com/tijmenjoppe/AnalyticalSkills-student/master/project/data/steam.json'
 steamKey = 'B99D1FC3DA15306CAB4D188601446F66'
