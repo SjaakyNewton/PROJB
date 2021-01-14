@@ -127,13 +127,13 @@ def ingame(lijstmetid):
     else:
         huidigeGametonen['text'] = ingame
 
-''' Dit is de functie die checkt welke games(2 games per friend) de afgelopen 2 weken het meest gespeeld zijn in mijn vriendenlijst '''
+''' Dit is de functie die checkt welke game de afgelopen 2 weken het meest gespeeld zijn in mijn vriendenlijst '''
 def gamesplayed(lijstmetid):
     games_played = {}
     while len(lijstmetid) != 0:
         lst = lijstmetid
         id = lst[0]
-        URLG = ('http://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/?key=B99D1FC3DA15306CAB4D188601446F66&steamid={}&count=2&format=json').format(id)
+        URLG = ('http://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/?key=B99D1FC3DA15306CAB4D188601446F66&steamid={}&count=1&format=json').format(id)
         json_data_gamesplayed = requests.get(URLG)
         json_formatted_gamesplayed = json.loads(json_data_gamesplayed.text)
 
@@ -287,10 +287,10 @@ gehelevriendenlijst = vriendenlijst()
 '''Zegt hoe tkinter wordt gebruikt'''
 root = Tk()
 root.configure(background='#1b2838',)
-root.title('Steam AI')
+root.title('Steam User Interface')
 root.iconbitmap('steamicon.ico')
-root.minsize(700, 500)
-root.maxsize(700, 500)
+root.minsize(800, 600)
+root.maxsize(800, 600)
 
 '''Het begin scherm als je de GUI opent.'''
 startScherm = Frame(master=root,bg = '#1b2838')
@@ -332,10 +332,6 @@ awayVrienden.grid(row=0, column=1)
 vriendenawaytonen = Label(master=onlineScherm, bg = '#1b2838', fg='white')
 vriendenawaytonen.grid(row=1, column=1)
 
-'''  Instellingen voor degene die mogelijk online zijn  '''
-mogelijkOnline = Label(master=onlineScherm,text='Deze vrienden zijn nu vaak online:',bg = '#0197CF',fg='white')
-#mogelijkOnline.grid(pady=3,sticky='nesw')
-
 ''' Terugknop onlinescherm'''
 terugButton = Button(master=onlineScherm, text ='Terug',command=startFrame,bg = '#2a475e',fg='#c7d5e0')
 terugButton.grid(row=2, column=1)
@@ -343,43 +339,51 @@ terugButton.grid(row=2, column=1)
 '''Hier staan alle instellingen voor het scherm waar je kunt zien welke games gespeeld worden.'''
 gamesScherm = Frame(master=root,bg = '#1b2838')
 gamesScherm.pack()
-gamesNuGespeeld = Label(master=gamesScherm,text='Huidig gespeelde games:',font=('bold italic', 18) ,bg = '#1b2838',fg='#0197CF')
-gamesNuGespeeld.grid(row=0, column=0, pady=10, padx=10)
-huidigeGametonen = Label(master=gamesScherm, bg = '#1b2838',fg='white')
-huidigeGametonen.grid(row=1, column=0, pady=10, padx=10)
+gamesNuGespeeld = Label(master=gamesScherm,text='Game activiteit vrienden',font=('Arial',40, 'bold italic'),bg = '#1b2838',fg='#0197CF')
+gamesNuGespeeld.grid(row=1, column=0)
+gamesbericht = Label(master=gamesScherm, text='Hier kun je zien welke games jouw vrienden momenteel spelen!', font=('Arial', 10),bg = '#1b2838',fg='#0197CF')
+gamesbericht.grid(row=2, column=0)
+huidigeGametonen = Label(master=gamesScherm, bg = '#1b2838',fg='white', font=('Arial', 15))
+huidigeGametonen.grid(row=3, column=0, pady=20, padx=10)
 terugButton = Button(master=gamesScherm, text ='Terug',command=startFrame,bg = '#2a475e',fg='#c7d5e0')
-terugButton.grid(row=2, column=0)
-''' Dit is de lege grid zodat ik de knop goed kan placeren '''
+terugButton.grid(row=4, column=0)
+''' Dit is de lege grid zodat ik sommige dingen goed kan placeren '''
 tussengrid = Label(master=gamesScherm, bg = '#1b2838')
 tussengrid.grid(row=2, column=1)
+legegrid = Label(master=gamesScherm, bg = '#1b2838')
+legegrid.grid(row=0, column=0, pady=20)
 
 ''' Scherm voor vrienden speeltijd-, gamestatistieken  '''
 vriendengames = Frame(master=root, bg='#1b2838')
 vriendengames.pack()
-totaaluren = Label(master=vriendengames, text='Totaal gespeelde uren afgelopen 2 weken', bg='#1b2838', fg='#0197CF', font=(3))
-totaaluren.grid(row=0, column=0)
-totaalurentonen = Label(master=vriendengames)
-totaalurentonen.grid(row=1, column=0)
-gemiddelduren = Label(master=vriendengames, text='Gemiddeld gespeelde uren afgelopen 2 weken', bg='#1b2838', fg='#0197CF', font=(3))
-gemiddelduren.grid(row =2, column=0)
-gemiddeldurentonen = Label(master=vriendengames)
-gemiddeldurentonen.grid(row=3, column=0)
-spreidingsbreedte = Label(master=vriendengames, text='Spreidingsbreedte tussen de minst- en meest gespeelde games', bg='#1b2838', fg='#0197CF', font=(3))
-spreidingsbreedte.grid(row=4, column=0)
-toevoeginkje = Label(master=vriendengames, text='(in uren)', bg='#1b2838', fg='#0197CF')
-toevoeginkje.grid(row=5, column=0)
-spreidingsbreedtetonen = Label(master=vriendengames)
-spreidingsbreedtetonen.grid(row=6, column=0)
+vriendengameswel = Label(master=vriendengames, text='Gaminggedrag van vrienden',font=('Arial',40, 'bold italic'),bg='#1b2838', fg='#0197CF')
+vriendengameswel.grid(row=0,column=0, pady=20)
+totaaluren = Label(master=vriendengames, text='Totaal gespeelde uren afgelopen 2 weken', bg='#1b2838', fg='#c7d5e0', font=('Arial', 12))
+totaaluren.grid(row=1, column=0)
+totaalurentonen = Label(master=vriendengames, bg='#1b2838', fg='#187bcd')
+totaalurentonen.grid(row=2, column=0)
+gemiddelduren = Label(master=vriendengames, text='Gemiddeld gespeelde uren afgelopen 2 weken', bg='#1b2838', fg='#c7d5e0', font=('Arial', 12))
+gemiddelduren.grid(row =3, column=0)
+pervriend = Label(master=vriendengames, text='(per vriend)', bg='#1b2838', fg='#c7d5e0')
+pervriend.grid(row=4, column=0)
+gemiddeldurentonen = Label(master=vriendengames, bg='#1b2838', fg='#187bcd')
+gemiddeldurentonen.grid(row=5, column=0)
+spreidingsbreedte = Label(master=vriendengames, text='Spreidingsbreedte tussen de minst- en meest gespeelde games', bg='#1b2838', fg='#c7d5e0', font=('Arial', 12))
+spreidingsbreedte.grid(row=6, column=0)
+inuren = Label(master=vriendengames, text='(in uren)', bg='#1b2838', fg='#c7d5e0')
+inuren.grid(row=7, column=0)
+spreidingsbreedtetonen = Label(master=vriendengames, bg='#1b2838', fg='#187bcd')
+spreidingsbreedtetonen.grid(row=8, column=0)
 terugButton = Button(master=vriendengames, text ='Terug',command=startFrame,bg = '#2a475e',fg='#c7d5e0')
-terugButton.grid(row=7, column=0, pady=50)
+terugButton.grid(row=9, column=0, pady=50)
 
 '''Hier staan alle instellingen voor het zoeken van games in een game lijst die door school is geleverd met een json bestand.'''
 gameLijstScherm = Frame(master=root,bg = '#1b2838')
 gameLijstScherm.pack()
 scrolbar = Scrollbar(master=gameLijstScherm)
 scrolbar.grid(row=1,column=2)
-gamesDieErZijn = Label(master=gameLijstScherm,bg = '#1b2838',fg='white',text='Alle games: ',font=(20))
-gamesDieErZijn.grid(row=0, pady=4,columnspan=2)
+gamesDieErZijn = Label(master=gameLijstScherm,bg = '#1b2838',fg='white',text='Alle games: ',font=('Arial',40, 'bold italic'))
+gamesDieErZijn.grid(row=0, pady=30,columnspan=2)
 gamesTonen = Listbox(master=gameLijstScherm,bg = '#0197CF',fg='white',yscrollcommand=scrolbar.set,width=50)
 gamesTonen.grid(row=1,columnspan=2,sticky='nesw')
 scrolbar.config(command=gamesTonen.yview)
