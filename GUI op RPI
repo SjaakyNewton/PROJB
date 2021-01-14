@@ -1,16 +1,21 @@
 from tkinter import *
 #from PIL import ImageTk,Image
-##pip install pillow
 import requests
 import json
 import os
+import sys
+
+#Standaard is dit 1000 maar dat vond het programma te weinig dus verhoogt tot dat die het genoeg vond.
+sys.setrecursionlimit(4000)
 
 if os.environ.get('DISPLAY','') == '':
-    print('no display found. Using :0.0')
     os.environ.__setitem__('DISPLAY', ':0.0')
 
 url = 'https://raw.githubusercontent.com/tijmenjoppe/AnalyticalSkills-student/master/project/data/steam.json'
 steamKey = 'B99D1FC3DA15306CAB4D188601446F66'
+
+
+
 
 """"
 Steam colour codes:
@@ -122,69 +127,102 @@ def ingame(lijstmetid):
     else:
         huidigeGametonen['text'] = ingame
 
+def partition(arr, low, high,zoekend):
+    i = (low - 1)
+    pivot = arr[high][zoekend]
+    for j in range(low, high):
+        if arr[j][zoekend] <= pivot:
+            i = i + 1
+            arr[i], arr[j] = arr[j], arr[i]
+    arr[i + 1], arr[high] = arr[high], arr[i + 1]
+    return (i + 1)
+
+def quickSort(arr, low, high,zoekend):
+    if len(arr) == 1:
+        return arr
+    if low < high:
+        pi = partition(arr, low, high,zoekend)
+        quickSort(arr, low, pi - 1,zoekend)
+        quickSort(arr, pi + 1, high,zoekend)
+    return arr
+
 def sortedOnName():
     ''''Functie die een lijst van games van het json bestand op naam sorteert'''
     gamesTonen.delete(0,'end')
-    content = jsonFunctie()
-    game = sorted(content, key=lambda item: item.get('name'))
-    for item in game:
-        gamesTonen.insert('end',item['name'])
+    zoek = 'name'
+    arr = jsonFunctie()
+    n = len(arr)
+    quickSort(arr, 0, n - 1,zoek)
+    for item in range(n):
+        gamesTonen.insert('end',arr[item][zoek])
     return
 
 def sortedOnNameRevers():
     ''''Functie die een lijst van games van het json bestand op naam sorteert maar dan reversed'''
     gamesTonen.delete(0,'end')
-    content = jsonFunctie()
-    game = sorted(content, key=lambda item: item.get('name'),reverse=True)
-    for item in game:
-        gamesTonen.insert('end',item['name'])
+    zoek = 'name'
+    arr = jsonFunctie()
+    n = len(arr)
+    quickSort(arr, 0, n - 1,zoek)
+    for item in range(n):
+        gamesTonen.insert('0',arr[item][zoek]) #tijdelijke fix?
     return
 
 def sortedOnPrice():
     ''''Functie die een lijst van games van het json bestand op prijs sorteert'''
-    gamesTonen.delete(0, 'end')
-    content = jsonFunctie()
-    game = sorted(content, key=lambda item: item.get('price'))
-    for item in game:
-        gamesTonen.insert('end','€'+str(item['price'])+'; '+ item['name'])
+    gamesTonen.delete(0,'end')
+    zoek = 'price'
+    arr = jsonFunctie()
+    n = len(arr)
+    quickSort(arr, 0, n - 1,zoek)
+    for item in range(n):
+        gamesTonen.insert('end','€'+str(arr[item][zoek])+'; '+ arr[item]['name'])
     return
 
 def sortedOnPriceRevers():
     ''''Functie die een lijst van games van het json bestand op prijs sorteert maar dan reversed '''
-    gamesTonen.delete(0, 'end')
-    content = jsonFunctie()
-    game = sorted(content, key=lambda item: item.get('price'),reverse=True)
-    for item in game:
-        gamesTonen.insert('end','€'+str(item['price'])+'; '+ item['name'])
+    gamesTonen.delete(0,'end')
+    zoek = 'price'
+    arr = jsonFunctie()
+    n = len(arr)
+    quickSort(arr, 0, n - 1,zoek)
+    for item in range(n):
+        gamesTonen.insert('0','€'+str(arr[item][zoek])+'; '+ arr[item]['name'])
     return
 
 def sortedOnReviewPositive():
     ''''Functie die een lijst van games van het json bestand op reviews sorteert die positief zijn'''
     gamesTonen.delete(0, 'end')
-    content = jsonFunctie()
-    game = sorted(content, key=lambda item: item.get('positive_ratings'),reverse=True)
-    for item in game:
-        gamesTonen.insert('end',str(item['positive_ratings'])+'; '+ item['name'])
+    zoek = 'positive_ratings'
+    arr = jsonFunctie()
+    n = len(arr)
+    quickSort(arr, 0, n - 1, zoek)
+    for item in range(n):
+        gamesTonen.insert('end', str(arr[item][zoek])+'; '+ arr[item]['name'])
     return
 
 def sortedOnReviewNegative():
     ''''Functie die een lijst van games van het json bestand op reviews sorteert die negatief zijn'''
     gamesTonen.delete(0, 'end')
-    content = jsonFunctie()
-    game = sorted(content, key=lambda item: item.get('negative_ratings'),reverse=True)
-    for item in game:
-        gamesTonen.insert('end',str(item['negative_ratings'])+'; '+ item['name'])
+    zoek = 'negative_ratings'
+    arr = jsonFunctie()
+    n = len(arr)
+    quickSort(arr, 0, n - 1, zoek)
+    for item in range(n):
+        gamesTonen.insert('end', str(arr[item][zoek])+'; '+ arr[item]['name'])
     return
 
 
 def sortedGamesZoekendOpNaam():
     ''''Functie die een lijst van games van het json bestand opzoek waar naam in is gezet. Indien je naam er al voor een deel inzit wordt de game mee genomen.
     Indien de lijst leeg is meld die dat (Dus niks gevonden). Er wordt gezocht met lower cases. Hierdoor kun je gewoon alles doorzoeken en gaat die niet pietje precies doen.'''
-    gamesTonen.delete(0,'end')
-    content = jsonFunctie()
-    game = sorted(content, key=lambda item: item.get('name'))
+    gamesTonen.delete(0, 'end')
+    zoek = 'name'
+    arr = jsonFunctie()
+    n = len(arr)
+    quickSort(arr, 0, n - 1, zoek)
     zoekend = zoekendEntry.get()
-    for item in game:
+    for item in arr:
         item = item['name']
         if zoekend.lower() in item.lower():
             gamesTonen.insert('end',item)
@@ -205,6 +243,9 @@ def binaireZoekFunctie(lst,target):
         return binaireZoekFunctie(lst[:half],target)
     else:
         return True
+
+
+
 
 ''' Dit is de variabele voor de gehele vriendenlijst die voor sommige functies nodig zijn'''
 gehelevriendenlijst = vriendenlijst()
