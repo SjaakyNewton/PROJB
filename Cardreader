@@ -1,0 +1,43 @@
+from pirc522 import RFID
+import RPi.GPIO as GPIO
+import time
+
+rdr = RFID()
+
+GPIO.setmode(GPIO.BOARD) # moet nu het pin nummer gebruiken.
+GPIO.setwarnings(0)
+
+pieper = 3
+
+GPIO.setup(pieper, GPIO.OUT)
+def piep(aantal):
+    for piep in range(0,aantal):
+        GPIO.output(pieper,True)
+        time.sleep(1)
+        GPIO.output(pieper, False)
+        time.sleep(0.001)
+
+try:
+    while True:
+        rdr.wait_for_tag()
+        (error, tag_type) = rdr.request()
+        piep(1)
+        if not error:
+            error, uid = rdr.anticoll()
+            UIDfile = open('UID.txt', 'w')
+            UIDfile.write(str(uid))
+            UIDfile.close()
+            UIDfile = open('UID.txt', 'r')
+            UIDfileRead = UIDfile.read()
+            if UIDfileRead == '[]':
+                print('Niet goed uitgelezen')
+                piep(2)
+            UIDfile.close()
+            rdr.stop_crypto()
+            time.sleep(1)
+except:
+    GPIO.setup(pieper, GPIO.OUT)
+    piep(2)
+    print('Gaat fout')
+finally:
+    rdr.cleanup()
