@@ -21,11 +21,11 @@ offline = [[0, 0, 255], [0, 0, 0]]
 away = [[0, 255, 255], [0, 0, 0]]
 
 #sr04 settings
-sr04_trig = 20
-sr04_echo = 16
+GPIO_TRIGGER = 20
+GPIO_ECHO = 21
 
-GPIO.setup(sr04_trig, GPIO.OUT)
-GPIO.setup(sr04_echo, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(GPIO_TRIGGER, GPIO.OUT)
+GPIO.setup(GPIO_ECHO, GPIO.IN)
 
 #servo settings
 servo = 25
@@ -149,26 +149,29 @@ def sr04(trig_pin, echo_pin):
     These pins must have been configured as output and input.s
     """
 
-    GPIO.output(trig_pin, GPIO.HIGH)
-    time.sleep(0.0001)
-    GPIO.output(trig_pin, GPIO.LOW)
+    # True en False zijn andere woorden voor HIGH en LOW
+    # Code werkt niet als HIGH of LOW worden geschreven
+    GPIO.output(GPIO_TRIGGER, True)
+    GPIO.output(GPIO_TRIGGER, False)
+    starttijd = time.time()
+    stoptijd = time.time()
 
-    while GPIO.input(echo_pin) == 0:
-        uitzenden = time.time()
+    while GPIO.input(GPIO_ECHO) == 0:
+        starttijd = time.time()
+    while GPIO.input(GPIO_ECHO) == 1:
+        stoptijd = time.time()
 
-    while GPIO.input(echo_pin) == 1:
-        terug = time.time()
+    t = stoptijd - starttijd
+    v = 34300  # snelheid van geluid door de lucht in cm/s
+    s = (t * v) / 2
 
-    tijd = terug - uitzenden
 
-    afstand = tijd * 17150
-    afstand = round(afstand, 2)
-    if afstand > 50:
+    if s > 50:
         status = 'Offline'
         statusFile = open('status.txt', 'w')
         statusFile.write(status)
         statusFile.close()
-    elif afstand <= 50:
+    elif s <= 50:
         status = 'Online'
         statusFile = open('status.txt','r')
         statusRead = statusFile.read()
@@ -179,7 +182,7 @@ def sr04(trig_pin, echo_pin):
             statusFile.write(status)
             statusFile.close()
         statusFile.close()
-    return str(afstand) + ' cm'
+    return
 
 def pulse(pin, delay1, delay2):
     GPIO.output(pin, GPIO.HIGH)
@@ -216,7 +219,7 @@ while True:
         steamKey = 'B99D1FC3DA15306CAB4D188601446F66'
     vriendenOphalen()
     print('led')
-    print(sr04(sr04_trig, sr04_echo))
+    print(sr04(GPIO_TRIGGER, GPIO_ECHO))
     print('afstand sensor')
 
 
