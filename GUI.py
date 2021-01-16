@@ -56,7 +56,7 @@ def gameLijstFrame():
 def vriendengamesFrame():
     startScherm.forget()
     vriendengames.pack()
-    statsvriend(gehelevriendenlijst)
+    statsvriend(gamesplayedreturn)
     root.geometry('400x400')
 
 def jsonFunctie():
@@ -154,7 +154,7 @@ def gamesplayed(lijstmetid):
 
 ''' Toont aantal uren gespeeld huidige dag '''
 def statsvriend(lijstmetid):
-    lijstje = gamesplayed(lijstmetid).values()
+    lijstje = gamesplayedreturn
     totaal = sum(lijstje)
     lengte = len(lijstje)
     gemiddelde = round(totaal / lengte, 2)
@@ -283,6 +283,7 @@ def binaireZoekFunctie(lst,target):
 
 ''' Dit is de variabele voor de gehele vriendenlijst die voor sommige functies nodig zijn'''
 gehelevriendenlijst = vriendenlijst()
+gamesplayedreturn = gamesplayed(gehelevriendenlijst).values()
 
 '''Zegt hoe tkinter wordt gebruikt'''
 root = Tk()
