@@ -7,7 +7,7 @@ import sys
 #Standaard is dit 1000 maar dat vond het programma te weinig dus verhoogt tot dat die het genoeg vond.
 sys.setrecursionlimit(4000)
 
-url = 'https://raw.githubusercontent.com/tijmenjoppe/AnalyticalSkills-student/master/project/data/steam.json'
+urlJson = 'https://raw.githubusercontent.com/tijmenjoppe/AnalyticalSkills-student/master/project/data/steam.json'
 steamKey = 'B99D1FC3DA15306CAB4D188601446F66'
 
 """"
@@ -22,6 +22,7 @@ Label settings: bg = '#2a9df4',fg='white'
                 bg = '#0197CF',fg='white' (Favoriet)
 """
 
+"""Zorgt ervoor dat je bij het eerste scherm komt en voor wisselingen tussen schermen."""
 def startFrame():
     onlineScherm.forget()
     gamesScherm.forget()
@@ -31,6 +32,7 @@ def startFrame():
     root.geometry('400x400')
     #optie scherm met wat je wilt zien
 
+"""Zorgt ervoor dat je bij het het vrienden scherm komt en voor wisselingen tussen schermen."""
 def onlineVriendenFrame():
     startScherm.forget()
     onlineScherm.pack()
@@ -38,6 +40,7 @@ def onlineVriendenFrame():
     root.geometry('400x400')
     #vrienden die online zijn moeten getoond worden, ook wat je verwacht wat online komt.
 
+"""Zorgt ervoor dat je bij het game die gespeeld worden scherm komt en voor wisselingen tussen schermen."""
 def playedGamesFrame():
     startScherm.forget()
     ingame(vriendenlijst())
@@ -45,27 +48,29 @@ def playedGamesFrame():
     root.geometry('400x400')
     #games die gespeeld worden.
 
+"""Zorgt ervoor dat je bij het json lijst scherm komt en voor wisselingen tussen schermen."""
 def gameLijstFrame():
     startScherm.forget()
     gameLijstScherm.pack()
-    #gamesDieErZijn['text'] = sortedOnName()
     sortedOnName()
     root.geometry('400x400')
     #Games die in steam staan. Worden uit een json bestand gehaald
 
+"""Zorgt ervoor dat je bij het het vrienden scherm komt en voor wisselingen tussen schermen."""
 def vriendengamesFrame():
     startScherm.forget()
     vriendengames.pack()
     statsvriend(gamesplayedreturn)
     root.geometry('400x400')
 
-def jsonFunctie():
-    ''''Functie die het json bestand uitleest. Dit schilt in elke andere functie de moeite om het ergens vandaan te halen.
+''''Functie die het json bestand uitleest. Dit schilt in elke andere functie de moeite om het ergens vandaan te halen.
     Met een regel kan iets de content gebruikt.'''
-    response = requests.get(url)
+def jsonFunctie():
+    response = requests.get(urlJson)
     content = json.loads(response.text)
     return content
 
+"""Haalt de vrienden op via de Steam API. Dit zorgt dus voor live updates. Je krijgt ze hier in nummers. Met de nummers kun je later meer."""
 def vriendenlijst():
     json_data_vriendenlijst = requests.get('http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key=B99D1FC3DA15306CAB4D188601446F66&steamid=76561198135983674&relationship=friend&format=json')
     json_formatted_vriendenlijst = json.loads(json_data_vriendenlijst.text)
@@ -75,6 +80,7 @@ def vriendenlijst():
     return lijstmetid
     #dit is een functie die de STEAMIDs in een lijst stopt om te gebruiken voor online vriendeninfo functie hieronder
 
+"""Haalt de vrienden info op. De informatie uit vriendelijst() Wordt hier verder verwerkt."""
 def vriendeninfo(lijstmetid):
     vriendenOnline = ''
     vriendenOffline = ''
@@ -164,27 +170,29 @@ def statsvriend(lijstmetid):
     gemiddeldurentonen['text'] = gemiddelde
     spreidingsbreedtetonen['text'] = range
 
-def partition(arr, low, high,zoekend):
-    i = (low - 1)
-    pivot = arr[high][zoekend]
+"""Is nodig voor de de quicksort. zorgt voor de wisselingen bij de sort."""
+def partition(lst, low, high,zoekend):
+    getal = (low - 1)
+    pivot = lst[high][zoekend]
     for j in range(low, high):
-        if arr[j][zoekend] <= pivot:
-            i = i + 1
-            arr[i], arr[j] = arr[j], arr[i]
-    arr[i + 1], arr[high] = arr[high], arr[i + 1]
-    return (i + 1)
+        if lst[j][zoekend] <= pivot:
+            getal = getal + 1
+            lst[getal], lst[j] = lst[j], lst[getal]
+    lst[getal + 1], lst[high] = lst[high], lst[getal + 1]
+    return (getal + 1)
 
-def quickSort(arr, low, high,zoekend):
-    if len(arr) == 1:
-        return arr
+"""Is nodig voor de de quicksort"""
+def quickSort(lst, low, high,zoekend):
+    if len(lst) == 1:
+        return lst
     if low < high:
-        pi = partition(arr, low, high,zoekend)
-        quickSort(arr, low, pi - 1,zoekend)
-        quickSort(arr, pi + 1, high,zoekend)
-    return arr
+        pi = partition(lst, low, high,zoekend)
+        quickSort(lst, low, pi - 1,zoekend)
+        quickSort(lst, pi + 1, high,zoekend)
+    return lst
 
+''''Functie die een lijst van games van het json bestand op naam sorteert'''
 def sortedOnName():
-    ''''Functie die een lijst van games van het json bestand op naam sorteert'''
     gamesTonen.delete(0,'end')
     zoek = 'name'
     arr = jsonFunctie()
@@ -194,8 +202,8 @@ def sortedOnName():
         gamesTonen.insert('end',arr[item][zoek])
     return
 
+''''Functie die een lijst van games van het json bestand op naam sorteert maar dan reversed'''
 def sortedOnNameRevers():
-    ''''Functie die een lijst van games van het json bestand op naam sorteert maar dan reversed'''
     gamesTonen.delete(0,'end')
     zoek = 'name'
     arr = jsonFunctie()
@@ -205,8 +213,8 @@ def sortedOnNameRevers():
         gamesTonen.insert('0',arr[item][zoek]) #tijdelijke fix?
     return
 
+''''Functie die een lijst van games van het json bestand op prijs sorteert'''
 def sortedOnPrice():
-    ''''Functie die een lijst van games van het json bestand op prijs sorteert'''
     gamesTonen.delete(0,'end')
     zoek = 'price'
     arr = jsonFunctie()
@@ -216,8 +224,8 @@ def sortedOnPrice():
         gamesTonen.insert('end','€'+str(arr[item][zoek])+'; '+ arr[item]['name'])
     return
 
+''''Functie die een lijst van games van het json bestand op prijs sorteert maar dan reversed '''
 def sortedOnPriceRevers():
-    ''''Functie die een lijst van games van het json bestand op prijs sorteert maar dan reversed '''
     gamesTonen.delete(0,'end')
     zoek = 'price'
     arr = jsonFunctie()
@@ -227,8 +235,8 @@ def sortedOnPriceRevers():
         gamesTonen.insert('0','€'+str(arr[item][zoek])+'; '+ arr[item]['name'])
     return
 
+''''Functie die een lijst van games van het json bestand op reviews sorteert die positief zijn'''
 def sortedOnReviewPositive():
-    ''''Functie die een lijst van games van het json bestand op reviews sorteert die positief zijn'''
     gamesTonen.delete(0, 'end')
     zoek = 'positive_ratings'
     arr = jsonFunctie()
@@ -238,8 +246,8 @@ def sortedOnReviewPositive():
         gamesTonen.insert('end', str(arr[item][zoek])+'; '+ arr[item]['name'])
     return
 
+''''Functie die een lijst van games van het json bestand op reviews sorteert die negatief zijn'''
 def sortedOnReviewNegative():
-    ''''Functie die een lijst van games van het json bestand op reviews sorteert die negatief zijn'''
     gamesTonen.delete(0, 'end')
     zoek = 'positive_ratings'
     arr = jsonFunctie()
@@ -249,10 +257,9 @@ def sortedOnReviewNegative():
         gamesTonen.insert('0', str(arr[item][zoek])+'; '+ arr[item]['name'])
     return
 
-
+''''Functie die een lijst van games van het json bestand opzoek waar naam in is gezet. Indien je naam er al voor een deel inzit wordt de game mee genomen.
+Indien de lijst leeg is meld die dat (Dus niks gevonden). Er wordt gezocht met lower cases. Hierdoor kun je gewoon alles doorzoeken en gaat die niet pietje precies doen.'''
 def sortedGamesZoekendOpNaam():
-    ''''Functie die een lijst van games van het json bestand opzoek waar naam in is gezet. Indien je naam er al voor een deel inzit wordt de game mee genomen.
-    Indien de lijst leeg is meld die dat (Dus niks gevonden). Er wordt gezocht met lower cases. Hierdoor kun je gewoon alles doorzoeken en gaat die niet pietje precies doen.'''
     gamesTonen.delete(0, 'end')
     zoek = 'name'
     arr = jsonFunctie()
@@ -268,9 +275,9 @@ def sortedGamesZoekendOpNaam():
         gamesTonen.insert('end',string)
     return
 
+'''Functie die voor je binair kan zoeken. De functie is nog nergens mee gekoppeld omdat ik nog niet weet waar die aan gekoppeld moet worden.
+Maar hij staat er in ieder geval in. Moet waarschijnlijk nog een beetje bijgewerkt worden zodat je daarwerkelijk je index krijgt inplaats van een boolean.'''
 def binaireZoekFunctie(lst,target):
-    '''Functie die voor je binair kan zoeken. De functie is nog nergens mee gekoppeld omdat ik nog niet weet waar die aan gekoppeld moet worden.
-    Maar hij staat er in ieder geval in. Moet waarschijnlijk nog een beetje bijgewerkt worden zodat je daarwerkelijk je index krijgt inplaats van een boolean.'''
     half = len(lst) // 2
     if len(lst) == 0 or len(lst)== 1 and lst[half] != target:
         return False
@@ -382,7 +389,7 @@ terugButton.grid(row=9, column=0, pady=50)
 gameLijstScherm = Frame(master=root,bg = '#1b2838')
 gameLijstScherm.pack()
 scrolbar = Scrollbar(master=gameLijstScherm)
-scrolbar.grid(row=1,column=2)
+scrolbar.grid(row=1,column=2,sticky='ns')
 gamesDieErZijn = Label(master=gameLijstScherm,bg = '#1b2838',fg='white',text='Alle games: ',font=('Arial',40, 'bold italic'))
 gamesDieErZijn.grid(row=0, pady=30,columnspan=2)
 gamesTonen = Listbox(master=gameLijstScherm,bg = '#0197CF',fg='white',yscrollcommand=scrolbar.set,width=50)
