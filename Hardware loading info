@@ -5,7 +5,6 @@ import requests
 import json
 
 
-
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(0)
 
@@ -28,7 +27,66 @@ GPIO.setup(GPIO_TRIGGER, GPIO.OUT)
 GPIO.setup(GPIO_ECHO, GPIO.IN)
 
 #servo settings
-servo = 25
+servo = 25 #Is dubble
+
+# RFID settings:
+# SDA: 8
+# SCK: 11
+# MOSI: 10
+# MISO: 9
+# IQR: 24
+# RST: 25
+
+#Pieper settings:
+#pieper = 3
+
+#schuif hc595 settings:
+shift_clock_pin = 5
+latch_clock_pin = 6
+data_pin = 13
+
+GPIO.setup( shift_clock_pin, GPIO.OUT )
+GPIO.setup( latch_clock_pin, GPIO.OUT )
+GPIO.setup( data_pin, GPIO.OUT )
+
+
+def hc595(shift_clock_pin, latch_clock_pin, data_pin, value, delay):
+    for i in range(0, 8):
+        if value % 2 == 1:
+            GPIO.output(data_pin, GPIO.HIGH)
+            time.sleep(0.5)
+
+        GPIO.output(shift_clock_pin, GPIO.HIGH)
+        GPIO.output(shift_clock_pin, GPIO.LOW)
+        GPIO.output(latch_clock_pin, GPIO.HIGH)
+        GPIO.output(latch_clock_pin, GPIO.LOW)
+
+    time.sleep(delay)
+
+def hc595Aaroepen():
+    delay = 0.1
+    while True:
+        hc595(shift_clock_pin, latch_clock_pin, data_pin, 1, delay)
+        hc595(shift_clock_pin, latch_clock_pin, data_pin, 2, delay)
+        hc595(shift_clock_pin, latch_clock_pin, data_pin, 4, delay)
+        hc595(shift_clock_pin, latch_clock_pin, data_pin, 8, delay)
+        hc595(shift_clock_pin, latch_clock_pin, data_pin, 16, delay)
+        hc595(shift_clock_pin, latch_clock_pin, data_pin, 32, delay)
+        hc595(shift_clock_pin, latch_clock_pin, data_pin, 64, delay)
+        hc595(shift_clock_pin, latch_clock_pin, data_pin, 128, delay)
+
+def switch():
+    # Led en button/switch
+    led = 18
+    switch = 23
+    GPIO.setup(led, GPIO.OUT)
+    GPIO.setup(switch, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+    while True:
+        if (GPIO.input(switch)):
+            GPIO.output(led, GPIO.HIGH)
+        else:
+            GPIO.output(led, GPIO.LOW)
+        time.sleep(0.1)
 
 def pulseLedStrip(clock_pin, data_pin, bytes):
     for byte in bytes:
@@ -205,8 +263,15 @@ def hondje(servo):
 
 UIDFile = open('UID.txt','r')
 lezen = UIDFile.read()
-print(lezen)
 
+print('Button')
+buttonThread = threading.Thread(target=switch, daemon=True)
+
+print('Schuifding')
+schuifThread = threading.Thread(target=hc595Aaroepen,daemon=True)
+
+buttonThread.start()
+schuifThread.start()
 while True:
     if lezen == '[135, 139, 89, 98, 55]':
         steamKey = 'B99D1FC3DA15306CAB4D188601446F66' #Key van Sandra
@@ -219,19 +284,8 @@ while True:
         steamKey = 'B99D1FC3DA15306CAB4D188601446F66'
     vriendenOphalen()
     print('led')
+    print(threading.active_count())
     print(sr04(GPIO_TRIGGER, GPIO_ECHO))
     print('afstand sensor')
-
-
-# while True:
-#     # vriendenOphalen()
-#     # print('led')
-#     print('afstand sensor')
-#     # try:
-#     #     ledThreading.start()
-#     # except:
-#     #     print('draait al')
-
-
 
 #ledThreading = threading.Thread(target=ledThread(), args=(1,),daemon=True)
