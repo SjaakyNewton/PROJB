@@ -1,291 +1,45 @@
-import threading
-import time
+from pirc522 import RFID
 import RPi.GPIO as GPIO
-import requests
-import json
+import time
 
-
-GPIO.setmode(GPIO.BCM)
+rdr = RFID()
+''''Er moet een file zijn voor deze code!
+UID.txt
+'''
+GPIO.setmode(GPIO.BOARD) # moet nu het pin nummer gebruiken.
 GPIO.setwarnings(0)
 
-#led settings
-clock_pin = 13
-data_pin = 26
+pieper = 3
 
-GPIO.setup(clock_pin, GPIO.OUT)
-GPIO.setup(data_pin, GPIO.OUT)
+GPIO.setup(pieper, GPIO.OUT)
+def piep(aantal):
+    for piep in range(0,aantal):
+        GPIO.output(pieper,True)
+        time.sleep(1)
+        GPIO.output(pieper, False)
+        time.sleep(0.001)
 
-online = [[0, 255, 0], [0, 0, 0]]
-offline = [[0, 0, 255], [0, 0, 0]]
-away = [[0, 255, 255], [0, 0, 0]]
-
-#sr04 settings
-GPIO_TRIGGER = 20
-GPIO_ECHO = 21
-
-GPIO.setup(GPIO_TRIGGER, GPIO.OUT)
-GPIO.setup(GPIO_ECHO, GPIO.IN)
-
-#servo settings
-servo = 25 #Is dubble
-
-# RFID settings:
-# SDA: 8
-# SCK: 11
-# MOSI: 10
-# MISO: 9
-# IQR: 24
-# RST: 25
-
-#Pieper settings:
-#pieper = 3
-
-#schuif hc595 settings:
-shift_clock_pin = 5
-latch_clock_pin = 6
-data_pin = 13
-
-GPIO.setup( shift_clock_pin, GPIO.OUT )
-GPIO.setup( latch_clock_pin, GPIO.OUT )
-GPIO.setup( data_pin, GPIO.OUT )
-
-
-def hc595(shift_clock_pin, latch_clock_pin, data_pin, value, delay):
-    for i in range(0, 8):
-        if value % 2 == 1:
-            GPIO.output(data_pin, GPIO.HIGH)
-            time.sleep(0.5)
-
-        GPIO.output(shift_clock_pin, GPIO.HIGH)
-        GPIO.output(shift_clock_pin, GPIO.LOW)
-        GPIO.output(latch_clock_pin, GPIO.HIGH)
-        GPIO.output(latch_clock_pin, GPIO.LOW)
-
-    time.sleep(delay)
-
-def hc595Aaroepen():
-    delay = 0.1
+try:
     while True:
-        hc595(shift_clock_pin, latch_clock_pin, data_pin, 1, delay)
-        hc595(shift_clock_pin, latch_clock_pin, data_pin, 2, delay)
-        hc595(shift_clock_pin, latch_clock_pin, data_pin, 4, delay)
-        hc595(shift_clock_pin, latch_clock_pin, data_pin, 8, delay)
-        hc595(shift_clock_pin, latch_clock_pin, data_pin, 16, delay)
-        hc595(shift_clock_pin, latch_clock_pin, data_pin, 32, delay)
-        hc595(shift_clock_pin, latch_clock_pin, data_pin, 64, delay)
-        hc595(shift_clock_pin, latch_clock_pin, data_pin, 128, delay)
-
-def switch():
-    # Led en button/switch
-    led = 18
-    switch = 23
-    GPIO.setup(led, GPIO.OUT)
-    GPIO.setup(switch, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-    while True:
-        if (GPIO.input(switch)):
-            GPIO.output(led, GPIO.HIGH)
-        else:
-            GPIO.output(led, GPIO.LOW)
-        time.sleep(0.1)
-
-def pulseLedStrip(clock_pin, data_pin, bytes):
-    for byte in bytes:
-        for bit in byte:
-            if bit == 0:
-                GPIO.output(data_pin, GPIO.LOW)
-                time.sleep(0.0001)
-                GPIO.output(clock_pin, GPIO.HIGH)
-                time.sleep(0.0001)
-                GPIO.output(clock_pin, GPIO.LOW)
-            elif bit == 1:
-                GPIO.output(data_pin, GPIO.HIGH)
-                time.sleep(0.0001)
-                GPIO.output(clock_pin, GPIO.HIGH)
-                time.sleep(0.0001)
-                GPIO.output(clock_pin, GPIO.LOW)
-
-def LedStrip(clock_pin, data_pin, colors):
-    deBytes = [128, 64, 32, 16, 8, 4, 2, 1]
-    pulseLedStrip(clock_pin, data_pin,
-                      [[0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0, 0, 0]])
-    binair = [[1, 1, 1, 1, 1, 1, 1, 1]]
-    for byte in colors:
-        for getal in byte:
-            index = 0
-            binairsGetal = []
-            while getal != 0 and not index > len(deBytes) - 1:
-                if getal - deBytes[index] > 0:
-                    getal = getal - deBytes[index]
-                    index += 1
-                    binairsGetal.append(1)
-                elif getal - deBytes[index] < 0:
-                    index += 1
-                    binairsGetal.append(0)
-                elif getal - deBytes[index] == 0:
-                    binairsGetal.append(1)
-                    getal = getal - deBytes[index]
-                    break
-            count = 0
-            for aantalKeer in range(len(binairsGetal), 8):
-                count += 1
-                binairsGetal.append(0)
-            binair.append(binairsGetal)
-
-        pulseLedStrip(clock_pin, data_pin, binair)
-        binair = [[1, 1, 1, 1, 1, 1, 1, 1]]
-
-def golfje(clockPin, dataPin, delay,kleuren):
-    for golf in range(0,1):
-        for kleur in kleuren:
-            LedStrip(clockPin,dataPin,[kleur for led in range(0,9)])
-            time.sleep(delay)
-
-def vriendenOphalen():
-    json_data_vriendenlijst = requests.get('http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key=B99D1FC3DA15306CAB4D188601446F66&steamid=76561198135983674&relationship=friend&format=json')
-    json_formatted_vriendenlijst = json.loads(json_data_vriendenlijst.text)
-    lijstmetid = []
-    for i in json_formatted_vriendenlijst['friendslist']['friends']:
-        lijstmetid.append(i['steamid'])
-    return vriendenChecken(lijstmetid)
-
-def vriendenChecken(lijstmetid):
-    aantalOnline = 0
-    aantalAway = 0
-    while len(lijstmetid) != 0:
-        lst = lijstmetid
-        id = lst[0]
-        URL = (' http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=B99D1FC3DA15306CAB4D188601446F66&steamids={}&format=json').format(id)
-        json_data_vriend = requests.get(URL)
-        json_formatted_vriend = json.loads(json_data_vriend.text)
-        for status in json_formatted_vriend['response']['players']:
-            if 1 == status['personastate']:
-                aantalOnline += 1
-            elif 3 == status['personastate']:
-                aantalAway += 1
-            lst.remove(lst[0])
-
-    fileOnline = open('Online.txt','r')
-    fileOnlineRead = fileOnline.read()
-
-    fileAway = open('Away.txt','r')
-    fileAwayRead = fileAway.read()
-
-    if aantalOnline > int(fileOnlineRead):
-        aantalKeer = aantalOnline - int(fileOnlineRead)
-        for aantal in range(0,aantalKeer):
-            golfje(clock_pin, data_pin, 0.5, online)
-    if aantalAway > int(fileAwayRead):
-        aantalKeer = aantalAway - int(fileAwayRead)
-        for aantal in range(0,aantalKeer):
-            golfje(clock_pin, data_pin, 0.5, away)
-    totaalNu = aantalOnline + aantalAway
-    totaalToen = int(fileOnlineRead) + int(fileAwayRead)
-    if totaalNu < totaalToen:
-        aantalKeer = totaalToen - totaalNu
-        for aantal in range(0,aantalKeer):
-            golfje(clock_pin, data_pin, 0.5, offline)
-    fileOnline.close()
-    fileAway.close()
-
-    fileOnline = open('Online.txt', 'w')
-    fileAway = open('Away.txt', 'w')
-    fileOnline.write(str(aantalOnline))
-    fileAway.write(str(aantalAway))
-
-    fileOnline.close()
-    fileAway.close()
-
-def ledThread():
-    vriendenOphalen()
-    print(threading.active_count())
-
-def sr04(trig_pin, echo_pin):
-    """
-    Return the distance in cm as measured by an SR04
-    that is connected to the trig_pin and the echo_pin.
-    These pins must have been configured as output and input.s
-    """
-
-    # True en False zijn andere woorden voor HIGH en LOW
-    # Code werkt niet als HIGH of LOW worden geschreven
-    GPIO.output(GPIO_TRIGGER, True)
-    GPIO.output(GPIO_TRIGGER, False)
-    starttijd = time.time()
-    stoptijd = time.time()
-
-    while GPIO.input(GPIO_ECHO) == 0:
-        starttijd = time.time()
-    while GPIO.input(GPIO_ECHO) == 1:
-        stoptijd = time.time()
-
-    t = stoptijd - starttijd
-    v = 34300  # snelheid van geluid door de lucht in cm/s
-    s = (t * v) / 2
-
-
-    if s > 50:
-        status = 'Offline'
-        statusFile = open('status.txt', 'w')
-        statusFile.write(status)
-        statusFile.close()
-    elif s <= 50:
-        status = 'Online'
-        statusFile = open('status.txt','r')
-        statusRead = statusFile.read()
-        if status != statusRead:
-            hondje(servo)
-            statusFile.close()
-            statusFile = open('status.txt', 'w')
-            statusFile.write(status)
-            statusFile.close()
-        statusFile.close()
-    return
-
-def pulse(pin, delay1, delay2):
-    GPIO.output(pin, GPIO.HIGH)
-    time.sleep(delay1)
-    GPIO.output(pin, GPIO.LOW)
-    time.sleep(delay2)
-
-def servo_pulse(pin_nr, position):
-    input = position * 0.00002 + 0.0007
-    delay = 0.002
-    pulse(pin_nr,input,delay)
-
-def hondje(servo):
-    GPIO.setup(servo, GPIO.OUT)
-    for kwispel in range(0,3):
-        for i in range(0, 60, 1):
-            servo_pulse(servo, i)
-        for i in range(100, 0, -1):
-            servo_pulse(servo, i)
-
-UIDFile = open('UID.txt','r')
-lezen = UIDFile.read()
-
-print('Button')
-buttonThread = threading.Thread(target=switch, daemon=True)
-
-print('Schuifding')
-schuifThread = threading.Thread(target=hc595Aaroepen,daemon=True)
-
-buttonThread.start()
-schuifThread.start()
-while True:
-    if lezen == '[135, 139, 89, 98, 55]':
-        steamKey = 'B99D1FC3DA15306CAB4D188601446F66' #Key van Sandra
-        print('Hallo Sandra')
-    elif lezen == '[137, 220, 168, 162, 95]':
-        steamKey = '9F4656787FFD2A5F28012F93FC023CE5' #Key van Isaak
-        print('Hallo Isaak')
-    else:
-        print('Ging iets fout')
-        steamKey = 'B99D1FC3DA15306CAB4D188601446F66'
-    vriendenOphalen()
-    print('led')
-    print(threading.active_count())
-    print(sr04(GPIO_TRIGGER, GPIO_ECHO))
-    print('afstand sensor')
-
-#ledThreading = threading.Thread(target=ledThread(), args=(1,),daemon=True)
+        rdr.wait_for_tag()
+        (error, tag_type) = rdr.request()
+        piep(1)
+        if not error:
+            error, uid = rdr.anticoll()
+            UIDfile = open('UID.txt', 'w')
+            UIDfile.write(str(uid))
+            UIDfile.close()
+            UIDfile = open('UID.txt', 'r')
+            UIDfileRead = UIDfile.read()
+            if UIDfileRead == '[]':
+                print('Niet goed uitgelezen')
+                piep(2)
+            UIDfile.close()
+            rdr.stop_crypto()
+            time.sleep(1)
+except:
+    GPIO.setup(pieper, GPIO.OUT)
+    piep(2)
+    print('Gaat fout')
+finally:
+    rdr.cleanup()
