@@ -3,6 +3,9 @@ from PIL import ImageTk,Image
 import requests
 import json
 import sys
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 #Standaard is dit 1000 maar dat vond het programma te weinig dus verhoogt tot dat die het genoeg vond.
 sys.setrecursionlimit(4000)
@@ -28,6 +31,7 @@ def startFrame():
     gamesScherm.forget()
     gameLijstScherm.forget()
     vriendengames.forget()
+    genreScherm.forget()
     startScherm.pack()
     root.geometry('400x400')
     #optie scherm met wat je wilt zien
@@ -61,6 +65,13 @@ def vriendengamesFrame():
     startScherm.forget()
     vriendengames.pack()
     statsvriend(gamesplayedreturn)
+    root.geometry('400x400')
+
+def genrestatFrame():
+    startScherm.forget()
+    genreScherm.pack()
+    grafiek()
+    statswereld()
     root.geometry('400x400')
 
 ''''Functie die het json bestand uitleest. Dit schilt in elke andere functie de moeite om het ergens vandaan te halen.
@@ -170,6 +181,74 @@ def statsvriend(lijstmetid):
     gemiddeldurentonen['text'] = gemiddelde
     spreidingsbreedtetonen['text'] = range
 
+''' Toont percentage genres over alle games '''
+def statswereld():
+    response = requests.get(urlJson)
+    content = json.loads(response.text)
+    index = 0
+    genres = {}
+    for item in content:
+        genres_split = item['genres'].split(";")
+        for genre in genres_split:
+
+            if genre in genres:
+                genres[genre] = genres[genre] + 1
+            else:
+                genres[genre] = 1
+
+    sorteddict = {key: value for key, value in
+                  sorted(genres.items(), reverse=True,
+                         key=lambda item: item[1])}
+    listvalues = list(sorteddict.values())
+    listkeys = list(sorteddict.keys())
+    sortedvalues = sorted(listvalues, reverse=True)
+
+    genre1 = str(listkeys[0])+ ':' + ' ' + str(round((sortedvalues[0] / sum(sorteddict.values()) * 100), 2)) + '%'
+    genre2 = str(listkeys[1])+ ':' + ' ' + str(round((sortedvalues[1] / sum(sorteddict.values()) * 100), 2)) + '%'
+    genre3 = str(listkeys[2])+ ':' + ' ' + str(round((sortedvalues[2] / sum(sorteddict.values()) * 100), 2)) + '%'
+
+    genrelabel2['text'] = genre1
+    genrelabel3['text'] = genre2
+    genrelabel4['text'] = genre3
+
+''' De functie die de grafiek creeert met matplotlib en ook op de GUIscherm toont '''
+def grafiek():
+    response = requests.get(urlJson)
+    content = json.loads(response.text)
+    index = 0
+    genres = {}
+    for item in content:
+        genres_split = item['genres'].split(";")
+        for genre in genres_split:
+            if genre in genres:
+                genres[genre] = genres[genre] + 1
+            else:
+                genres[genre] = 1
+
+    sorteddict = {key: value for key, value in sorted(genres.items(), reverse=True, key=lambda item: item[1])}
+    count = 0
+    most_popular = {}
+    for genre in sorteddict:
+        if count == 5:
+            break
+        most_popular[genre] = sorteddict[genre]
+        count += 1
+
+    figuur = plt.Figure(figsize=(7,4), dpi=100)
+    add = figuur.add_subplot(111)
+    toonfiguur = FigureCanvasTkAgg(figuur, master=genreScherm)
+    toonfiguur.get_tk_widget().grid(row=5, column=0)
+    plt.rcdefaults()
+    fig = plt.subplots()
+    y_pos = np.arange(len(most_popular))
+    add.barh(y_pos,list(most_popular.values()), align='center')
+    add.set_yticks(y_pos)
+    add.set_yticklabels(list(most_popular.keys()))
+    add.invert_yaxis()
+    add.set_xlabel('Aantal games in dit genre')
+    add.set_title('Populairste genres')
+
+    
 """Is nodig voor de de quicksort. zorgt voor de wisselingen bij de sort."""
 def partition(lst, low, high,zoekend):
     getal = (low - 1)
@@ -312,9 +391,9 @@ startSchermvriendenstat.grid(row=4, column=0,sticky='nesw')
 startSchermGames = Button(master=startScherm,text='Game activiteit',command=playedGamesFrame,bg = '#2a475e',fg='#c7d5e0', width=15, height=2)
 startSchermGames.grid(row=3, column=0, sticky='nesw')
 startSchermGameLijst = Button(master=startScherm,text='Games lijst',command=gameLijstFrame,bg = '#2a475e',fg='#c7d5e0', width=15, height=2)
-startSchermGameLijst.grid(row=5, column=0,sticky='nesw')
-startSchermGamestatistieken = Button(master=startScherm,text='Globale game statistieken',bg = '#2a475e',fg='#c7d5e0', width=15, height=2)
-startSchermGamestatistieken.grid(row=6, column=0,sticky='nesw')
+startSchermGameLijst.grid(row=6, column=0,sticky='nesw')
+startSchermGamestatistieken = Button(master=startScherm,text='Globale game statistieken',command=genrestatFrame,bg = '#2a475e',fg='#c7d5e0', width=15, height=2)
+startSchermGamestatistieken.grid(row=5, column=0,sticky='nesw')
 ''' Logo Steam in beginscherm '''
 logo = ImageTk.PhotoImage(Image.open("steamlogo.png"))
 logolabel = Label(master=startScherm, image=logo)
@@ -384,6 +463,23 @@ spreidingsbreedtetonen = Label(master=vriendengames, bg='#1b2838', fg='#187bcd')
 spreidingsbreedtetonen.grid(row=8, column=0)
 terugButton = Button(master=vriendengames, text ='Terug',command=startFrame,bg = '#2a475e',fg='#c7d5e0')
 terugButton.grid(row=9, column=0, pady=50)
+
+'''' Hier staan alle instellingen voor de globale statistieken '''
+genreScherm = Frame(master=root, bg='#1b2838')
+genreScherm.pack()
+genrelabel1 = Label(master=genreScherm, bg = '#1b2838',fg='white',text='Populairste genres ',font=('Arial',30, 'bold italic'))
+genrelabel1.grid(row=0, column=0)
+genrelabel2 = Label(master=genreScherm, bg = '#1b2838',fg='white',font=('Arial',12, 'bold italic'))
+genrelabel2.grid(row=2, column=0)
+genrelabel3 = Label(master=genreScherm, bg = '#1b2838',fg='white',font=('Arial',12, 'bold italic'))
+genrelabel3.grid(row=3, column=0)
+genrelabel4 = Label(master=genreScherm, bg = '#1b2838',fg='white',font=('Arial',12, 'bold italic'))
+genrelabel4.grid(row=4, column=0)
+genrewelkom = Label(master=genreScherm, bg = '#1b2838',fg='white',text='in procenten van totale aantal games:' ,font=('Arial',12, 'bold italic'))
+genrewelkom.grid(row=1, column=0)
+
+terugButton = Button(master=genreScherm, text ='Terug',command=startFrame,bg = '#2a475e',fg='#c7d5e0')
+terugButton.grid(row=6, column=0, pady=5)
 
 '''Hier staan alle instellingen voor het zoeken van games in een game lijst die door school is geleverd met een json bestand.'''
 gameLijstScherm = Frame(master=root,bg = '#1b2838')
