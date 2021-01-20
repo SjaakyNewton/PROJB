@@ -3,7 +3,9 @@ import RPi.GPIO as GPIO
 import time
 
 rdr = RFID()
-
+''''Er moet een file zijn voor deze code!
+UID.txt
+'''
 GPIO.setmode(GPIO.BOARD) # moet nu het pin nummer gebruiken.
 GPIO.setwarnings(0)
 
